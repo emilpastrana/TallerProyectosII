@@ -10,3 +10,7 @@ Plataforma integral para la **gestión de proyectos colaborativos**, diseñada p
 - **Recomendaciones automáticas**: Optimiza la asignación de tareas y recursos.
 - **Automatización de tareas**: Automatiza tareas repetitivas y envía notificaciones automáticas.
 - **Interfaz intuitiva**: Tablero Kanban interactivo para la gestión de tareas.
+
+
+
+LINK JIRA: https://losimpactules.atlassian.net/jira/software/c/projects/PDGPCCII/boards/133/backlog?atlOrigin=eyJpIjoiZGFjODAyZTk3NmUwNDFhM2JjN2NkMDA4YmY0YjQ4YmUiLCJwIjoiaiJ9
