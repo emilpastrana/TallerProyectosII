@@ -1,0 +1,45 @@
+import React from "react"
+import ReactDOM from "react-dom/client"
+import App from "./App"
+
+// Configurar axios para peticiones al backend
+import axios from "axios"
+
+// Configurar la URL base
+axios.defaults.baseURL = "http://localhost:5000"
+
+// Configurar interceptor para añadir el token a cada petición
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
+
+// Configurar interceptor para manejar errores de autenticación
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // No redirigir automáticamente al login para evitar ciclos infinitos
+    if (error.response && error.response.status === 401) {
+      console.log("Error de autenticación:", error.response.data.message)
+      // Solo limpiar el token si no estamos en la página de login
+      if (!window.location.pathname.includes("/login")) {
+        console.log("Sesión expirada o token inválido")
+      }
+    }
+    return Promise.reject(error)
+  },
+)
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)
