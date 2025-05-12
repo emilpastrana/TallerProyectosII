@@ -13,6 +13,9 @@ import MensajesPage from "./pages/MensajesPage"
 import NotificacionesPage from "./pages/NotificacionesPage"
 import IAAsistentePage from "./pages/IAAsistentePage"
 import ConfiguracionPage from "./pages/ConfiguracionPage"
+import BacklogPage from "./pages/BacklogPage"
+import SprintsPage from "./pages/SprintsPage"
+import ProyectoDashboard from "./pages/ProyectoDashboard" // Add the new route for project dashboard
 import "./index.css"
 
 // Componente protegido que verifica si hay un token válido
@@ -30,7 +33,12 @@ const ProtectedRoute = ({ children }) => {
   }, [])
 
   if (loading) {
-    return <div className="loading">Verificando autenticación...</div>
+    return (
+      <div className="flex items-center justify-center h-screen bg-secondary-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+        <span className="ml-3 text-secondary-600">Verificando autenticación...</span>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -51,7 +59,12 @@ function App() {
   }, [])
 
   if (loading) {
-    return <div className="loading">Cargando...</div>
+    return (
+      <div className="flex items-center justify-center h-screen bg-secondary-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+        <span className="ml-3 text-secondary-600">Cargando...</span>
+      </div>
+    )
   }
 
   return (
@@ -59,6 +72,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Rutas de Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -67,6 +82,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/dashboard/:proyectoId"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Ruta principal siempre redirige al dashboard si está autenticado, o al login si no */}
         <Route
           path="/"
@@ -83,9 +107,29 @@ function App() {
           }
         />
 
+        {/* Rutas de backlog */}
+        <Route
+          path="/backlog/:proyectoId"
+          element={
+            <ProtectedRoute>
+              <BacklogPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas de sprints */}
+        <Route
+          path="/sprints/:proyectoId"
+          element={
+            <ProtectedRoute>
+              <SprintsPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Rutas de tableros */}
         <Route
-          path="/tableros/proyecto/:proyectoId"
+          path="/tableros/:proyectoId"
           element={
             <ProtectedRoute>
               <Tablero />
@@ -103,7 +147,7 @@ function App() {
           }
         />
         <Route
-          path="/tareas"
+          path="/tareas/:proyectoId"
           element={
             <ProtectedRoute>
               <TareasPage />
@@ -139,6 +183,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ConfiguracionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/proyecto/:id"
+          element={
+            <ProtectedRoute>
+              <ProyectoDashboard />
             </ProtectedRoute>
           }
         />

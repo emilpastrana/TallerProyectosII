@@ -6,6 +6,9 @@ import usuariosRoutes from "./routes/usuarios.js"
 import proyectosRoutes from "./routes/proyectos.js"
 import tablerosRoutes from "./routes/tableros.js"
 import tareasRoutes from "./routes/tareas.js"
+import epicasRoutes from "./routes/epicas.js"
+import historiasRoutes from "./routes/historias.js"
+import equiposRoutes from "./routes/equipos.js"
 
 // Cargar variables de entorno
 dotenv.config()
@@ -22,6 +25,9 @@ app.use("/api/usuarios", usuariosRoutes)
 app.use("/api/proyectos", proyectosRoutes)
 app.use("/api/tableros", tablerosRoutes)
 app.use("/api/tareas", tareasRoutes)
+app.use("/api/epicas", epicasRoutes)
+app.use("/api/historias", historiasRoutes)
+app.use("/api/equipos", equiposRoutes)
 
 // Ruta de prueba
 app.get("/", (req, res) => {

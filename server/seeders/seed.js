@@ -7,6 +7,8 @@ import Tarea from "../models/Tarea.js"
 import Tablero from "../models/Tablero.js"
 import Columna from "../models/Columna.js"
 import bcrypt from "bcryptjs"
+import Epica from "../models/Epica.js"
+import Historia from "../models/Historia.js"
 
 dotenv.config()
 
@@ -27,6 +29,8 @@ const limpiarDB = async () => {
   await Tarea.deleteMany({})
   await Tablero.deleteMany({})
   await Columna.deleteMany({})
+  await Epica.deleteMany({})
+  await Historia.deleteMany({})
   console.log("Base de datos limpiada")
 }
 
@@ -285,7 +289,73 @@ const crearTareas = async (proyectos, usuarios, columnas) => {
   return tareasCreadas
 }
 
-// Ejecutar seeders
+// Add functions to create epics and stories after the crearTareas function
+
+// Crear épicas
+const crearEpicas = async (proyectos, usuarios) => {
+  const prioridades = ["baja", "media", "alta", "crítica"]
+  const estados = ["pendiente", "en progreso", "en revisión", "completada"]
+
+  const epicas = []
+
+  for (const proyecto of proyectos) {
+    const numEpicas = Math.floor(Math.random() * 3) + 2 // 2-4 épicas por proyecto
+
+    for (let i = 0; i < numEpicas; i++) {
+      epicas.push({
+        titulo: `Épica ${i + 1} del proyecto ${proyecto.nombre}`,
+        descripcion: `Descripción de la épica ${i + 1} del proyecto ${proyecto.nombre}`,
+        proyecto: proyecto._id,
+        creador: random(usuarios)._id,
+        estado: random(estados),
+        prioridad: random(prioridades),
+        fechaCreacion: new Date(),
+        fechaActualizacion: new Date(),
+      })
+    }
+  }
+
+  const epicasCreadas = await Epica.insertMany(epicas)
+  console.log(`${epicasCreadas.length} épicas creadas`)
+  return epicasCreadas
+}
+
+// Crear historias de usuario
+const crearHistorias = async (epicas, proyectos, usuarios) => {
+  const prioridades = ["baja", "media", "alta", "crítica"]
+  const estados = ["pendiente", "en progreso", "en revisión", "completada"]
+
+  const historias = []
+
+  for (const epica of epicas) {
+    const numHistorias = Math.floor(Math.random() * 3) + 1 // 1-3 historias por épica
+
+    for (let i = 0; i < numHistorias; i++) {
+      const proyecto = proyectos.find((p) => p._id.equals(epica.proyecto))
+
+      historias.push({
+        titulo: `Historia ${i + 1} de la épica ${epica.titulo}`,
+        descripcion: `Descripción de la historia ${i + 1} de la épica ${epica.titulo}`,
+        comoUsuario: "Como usuario del sistema",
+        quiero: `Quiero poder realizar la acción ${i + 1}`,
+        para: "Para lograr un objetivo específico",
+        proyecto: epica.proyecto,
+        epicaId: epica._id,
+        creador: random(usuarios)._id,
+        estado: random(estados),
+        prioridad: random(prioridades),
+        fechaCreacion: new Date(),
+        fechaActualizacion: new Date(),
+      })
+    }
+  }
+
+  const historiasCreadas = await Historia.insertMany(historias)
+  console.log(`${historiasCreadas.length} historias creadas`)
+  return historiasCreadas
+}
+
+// Actualizar la función ejecutarSeeders para incluir las nuevas funciones
 const ejecutarSeeders = async () => {
   try {
     await limpiarDB()
@@ -294,6 +364,8 @@ const ejecutarSeeders = async () => {
     const proyectos = await crearProyectos(equipos)
     const { columnas } = await crearTablerosYColumnas(proyectos)
     await crearTareas(proyectos, usuarios, columnas)
+    const epicas = await crearEpicas(proyectos, usuarios)
+    const historias = await crearHistorias(epicas, proyectos, usuarios)
 
     console.log("Datos de prueba creados exitosamente")
     process.exit(0)

@@ -10,13 +10,15 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "install-server": "cd server && npm install",
     "install-client": "cd client && npm install",
-    "install-all": "npm install && npm run install-server && npm run install-client"
+    "seed": "cd server && npm run seed",
+    "install-all": "npm install && npm run install-server && npm run install-client && npm run seed"
   },
   "keywords": ["mern", "project management"],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^8.2.1"
+    "concurrently": "^8.2.1",
+    "install-all": "^1.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams } from "react-router-dom"
 import axios from "axios"
 import Sidebar from "../components/common/Sidebar"
 import Footer from "../components/common/Footer"
@@ -9,7 +9,6 @@ import KanbanBoard from "../components/tablero/KanbanBoard"
 
 const Tablero = () => {
   const { proyectoId } = useParams()
-  const navigate = useNavigate()
   const [tablero, setTablero] = useState(null)
   const [columnas, setColumnas] = useState([])
   const [proyecto, setProyecto] = useState(null)
@@ -32,6 +31,7 @@ const Tablero = () => {
           // Obtener el proyecto
           const proyectoRes = await axios.get(`/api/proyectos/${proyectoId}`)
           proyectoData = proyectoRes.data.proyecto
+          setProyecto(proyectoData)
 
           // Obtener tableros del proyecto
           const tablerosRes = await axios.get(`/api/tableros/proyecto/${proyectoId}`)
@@ -55,8 +55,18 @@ const Tablero = () => {
             tableroData = tableroRes.data.tablero
             columnasData = tableroRes.data.columnas
           }
+
+          setTablero(tableroData)
+          setColumnas(columnasData)
         } catch (err) {
           console.error("Error al obtener datos reales:", err)
+
+          // Mostrar el error específico
+          if (err.response && err.response.data && err.response.data.message) {
+            setError(`Error: ${err.response.data.message}`)
+          } else {
+            setError(`Error: ${err.message}`)
+          }
 
           // Si hay error, usar datos simulados
           proyectoData = {
@@ -71,6 +81,7 @@ const Tablero = () => {
                     : "Proyecto",
             clave: proyectoId === "1" ? "DAW" : proyectoId === "2" ? "RDM" : proyectoId === "3" ? "CMD" : "PRO",
           }
+          setProyecto(proyectoData)
 
           tableroData = {
             _id: "tablero-" + proyectoId,
@@ -78,6 +89,7 @@ const Tablero = () => {
             descripcion: `Tablero principal para el proyecto ${proyectoData.nombre}`,
             proyecto: proyectoId,
           }
+          setTablero(tableroData)
 
           // Columnas simuladas
           const columnasSimuladas = [
@@ -185,16 +197,13 @@ const Tablero = () => {
             },
           ]
 
-          columnasData = columnasSimuladas
+          setColumnas(columnasSimuladas)
         }
 
-        setProyecto(proyectoData)
-        setTablero(tableroData)
-        setColumnas(columnasData)
         setLoading(false)
       } catch (err) {
         console.error("Error al cargar el tablero:", err)
-        setError("Error al cargar el tablero. Por favor, intenta de nuevo más tarde.")
+        setError(`Error al cargar el tablero: ${err.message}`)
         setLoading(false)
       }
     }
@@ -202,7 +211,7 @@ const Tablero = () => {
     if (proyectoId) {
       fetchTablero()
     }
-  }, [proyectoId, navigate])
+  }, [proyectoId])
 
   // Función para mover una tarea entre columnas
   const handleMoveTask = async (tareaId, columnaDestinoId) => {

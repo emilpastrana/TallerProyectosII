@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import axios from "axios"
+import { User, Mail, Lock, AlertCircle } from "lucide-react"
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -94,71 +95,139 @@ const Register = () => {
   }
 
   return (
-    <div className="register-container">
-      <div className="register-form-container">
-        <h1>Crear Cuenta</h1>
-        {serverError && <div className="error-message">{serverError}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className={`form-group ${errors.nombre ? "has-error" : ""}`}>
-            <label htmlFor="nombre">Nombre Completo</label>
-            <input
-              type="text"
-              id="nombre"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              className={errors.nombre ? "input-error" : ""}
-              required
-            />
-            {errors.nombre && <div className="validation-error">{errors.nombre}</div>}
+    <div className="min-h-screen flex items-center justify-center bg-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-secondary-900">Crear Cuenta</h1>
+          <p className="mt-2 text-sm text-secondary-600">Regístrate para comenzar a gestionar tus proyectos</p>
+        </div>
+
+        {serverError && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+              <p className="text-sm text-red-700">{serverError}</p>
+            </div>
           </div>
-          <div className={`form-group ${errors.correo ? "has-error" : ""}`}>
-            <label htmlFor="correo">Correo Electrónico</label>
-            <input
-              type="email"
-              id="correo"
-              name="correo"
-              value={formData.correo}
-              onChange={handleChange}
-              className={errors.correo ? "input-error" : ""}
-              required
-            />
-            {errors.correo && <div className="validation-error">{errors.correo}</div>}
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label htmlFor="nombre" className="block text-sm font-medium text-secondary-700">
+              Nombre Completo
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <User className="h-5 w-5 text-secondary-400" />
+              </div>
+              <input
+                id="nombre"
+                name="nombre"
+                type="text"
+                autoComplete="name"
+                value={formData.nombre}
+                onChange={handleChange}
+                className={`block w-full pl-10 pr-3 py-2 border ${
+                  errors.nombre ? "border-red-300" : "border-secondary-300"
+                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                placeholder="Juan Pérez"
+              />
+            </div>
+            {errors.nombre && <p className="mt-1 text-sm text-red-600">{errors.nombre}</p>}
           </div>
-          <div className={`form-group ${errors.contraseña ? "has-error" : ""}`}>
-            <label htmlFor="contraseña">Contraseña</label>
-            <input
-              type="password"
-              id="contraseña"
-              name="contraseña"
-              value={formData.contraseña}
-              onChange={handleChange}
-              className={errors.contraseña ? "input-error" : ""}
-              required
-            />
-            {errors.contraseña && <div className="validation-error">{errors.contraseña}</div>}
-            <small className="form-help">La contraseña debe tener al menos 6 caracteres</small>
+
+          <div>
+            <label htmlFor="correo" className="block text-sm font-medium text-secondary-700">
+              Correo Electrónico
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Mail className="h-5 w-5 text-secondary-400" />
+              </div>
+              <input
+                id="correo"
+                name="correo"
+                type="email"
+                autoComplete="email"
+                value={formData.correo}
+                onChange={handleChange}
+                className={`block w-full pl-10 pr-3 py-2 border ${
+                  errors.correo ? "border-red-300" : "border-secondary-300"
+                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                placeholder="nombre@ejemplo.com"
+              />
+            </div>
+            {errors.correo && <p className="mt-1 text-sm text-red-600">{errors.correo}</p>}
           </div>
-          <div className={`form-group ${errors.confirmarContraseña ? "has-error" : ""}`}>
-            <label htmlFor="confirmarContraseña">Confirmar Contraseña</label>
-            <input
-              type="password"
-              id="confirmarContraseña"
-              name="confirmarContraseña"
-              value={formData.confirmarContraseña}
-              onChange={handleChange}
-              className={errors.confirmarContraseña ? "input-error" : ""}
-              required
-            />
-            {errors.confirmarContraseña && <div className="validation-error">{errors.confirmarContraseña}</div>}
+
+          <div>
+            <label htmlFor="contraseña" className="block text-sm font-medium text-secondary-700">
+              Contraseña
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-secondary-400" />
+              </div>
+              <input
+                id="contraseña"
+                name="contraseña"
+                type="password"
+                autoComplete="new-password"
+                value={formData.contraseña}
+                onChange={handleChange}
+                className={`block w-full pl-10 pr-3 py-2 border ${
+                  errors.contraseña ? "border-red-300" : "border-secondary-300"
+                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                placeholder="••••••••"
+              />
+            </div>
+            {errors.contraseña && <p className="mt-1 text-sm text-red-600">{errors.contraseña}</p>}
+            <p className="mt-1 text-xs text-secondary-500">La contraseña debe tener al menos 6 caracteres</p>
           </div>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Registrando..." : "Registrarse"}
-          </button>
+
+          <div>
+            <label htmlFor="confirmarContraseña" className="block text-sm font-medium text-secondary-700">
+              Confirmar Contraseña
+            </label>
+            <div className="mt-1 relative rounded-md shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Lock className="h-5 w-5 text-secondary-400" />
+              </div>
+              <input
+                id="confirmarContraseña"
+                name="confirmarContraseña"
+                type="password"
+                autoComplete="new-password"
+                value={formData.confirmarContraseña}
+                onChange={handleChange}
+                className={`block w-full pl-10 pr-3 py-2 border ${
+                  errors.confirmarContraseña ? "border-red-300" : "border-secondary-300"
+                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                placeholder="••••••••"
+              />
+            </div>
+            {errors.confirmarContraseña && <p className="mt-1 text-sm text-red-600">{errors.confirmarContraseña}</p>}
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Registrando..." : "Registrarse"}
+            </button>
+          </div>
         </form>
-        <p className="login-link">
-          ¿Ya tienes una cuenta? <Link to="/login">Inicia sesión aquí</Link>
-        </p>
+
+        <div className="text-center mt-4">
+          <p className="text-sm text-secondary-600">
+            ¿Ya tienes una cuenta?{" "}
+            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+              Inicia sesión aquí
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

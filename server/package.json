@@ -9,10 +9,7 @@
     "dev": "nodemon server.js",
     "seed": "node seeders/seed.js"
   },
-  "keywords": [
-    "mern",
-    "project management"
-  ],
+  "keywords": ["mern", "project management"],
   "author": "",
   "license": "ISC",
   "dependencies": {

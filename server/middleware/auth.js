@@ -17,6 +17,16 @@ export const authMiddleware = async (req, res, next) => {
     // Verificar token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "jwt_secret_key")
 
+    // Verificar si el token ha expirado
+    const currentTime = Math.floor(Date.now() / 1000)
+    if (decoded.exp && decoded.exp < currentTime) {
+      return res.status(401).json({
+        success: false,
+        message: "Token expirado, por favor inicie sesión nuevamente",
+        tokenExpired: true,
+      })
+    }
+
     // Agregar información del usuario a la request
     req.usuario = decoded
 
@@ -49,6 +59,7 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: "Token expirado",
+        tokenExpired: true,
       })
     }
     res.status(500).json({

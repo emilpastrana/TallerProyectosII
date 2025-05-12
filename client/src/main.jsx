@@ -1,6 +1,8 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import App from "./App"
+import ErrorBoundary from "./components/common/ErrorBoundary"
+import "./index.css"
 
 // Configurar axios para peticiones al backend
 import axios from "axios"
@@ -38,8 +40,20 @@ axios.interceptors.response.use(
   },
 )
 
+// Configurar un manejador global de errores para capturar errores no controlados
+window.addEventListener("error", (event) => {
+  console.error("Error no controlado:", event.error)
+})
+
+// Configurar un manejador para promesas rechazadas no controladas
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("Promesa rechazada no controlada:", event.reason)
+})
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>,
 )

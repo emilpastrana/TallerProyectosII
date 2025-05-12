@@ -1,47 +1,48 @@
 import mongoose from "mongoose"
 
-const epicaSchema = new mongoose.Schema({
-  titulo: {
-    type: String,
-    required: [true, "El título de la épica es obligatorio"],
-    trim: true,
+const epicaSchema = new mongoose.Schema(
+  {
+    titulo: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    descripcion: {
+      type: String,
+      trim: true,
+    },
+    proyecto: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Proyecto",
+      required: true,
+    },
+    estado: {
+      type: String,
+      enum: ["pendiente", "en progreso", "en revisión", "completada"],
+      default: "pendiente",
+    },
+    prioridad: {
+      type: String,
+      enum: ["baja", "media", "alta", "crítica"],
+      default: "media",
+    },
+    creador: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+    },
+    fechaCreacion: {
+      type: Date,
+      default: Date.now,
+    },
+    fechaActualizacion: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  descripcion: {
-    type: String,
-    trim: true,
+  {
+    timestamps: true,
   },
-  proyecto: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Proyecto",
-    required: true,
-  },
-  creador: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Usuario",
-    required: true,
-  },
-  prioridad: {
-    type: String,
-    enum: ["baja", "media", "alta", "crítica"],
-    default: "media",
-  },
-  estado: {
-    type: String,
-    enum: ["pendiente", "en progreso", "completada", "cancelada"],
-    default: "pendiente",
-  },
-  fechaInicio: {
-    type: Date,
-    default: Date.now,
-  },
-  fechaFin: {
-    type: Date,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-})
+)
 
 const Epica = mongoose.model("Epica", epicaSchema)
 
