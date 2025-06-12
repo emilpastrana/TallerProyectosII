@@ -15,6 +15,7 @@ const tableroSchema = new mongoose.Schema({
     ref: "Proyecto",
     required: true,
   },
+
   createdAt: {
     type: Date,
     default: Date.now,

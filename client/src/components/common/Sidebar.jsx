@@ -103,11 +103,15 @@ const Sidebar = () => {
   ]
 
   return (
-    <div className="w-64 bg-secondary-800 text-white h-screen flex flex-col fixed">
+    <div className="w-64 bg-secondary-800 text-white h-screen flex flex-col fixed shadow-lg">
       <div className="p-6 border-b border-secondary-700">
-        <h2 className="text-xl font-bold">Project Manager</h2>
+        <div className="flex items-center space-x-3">
+          <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
+          <h2 className="text-xl font-bold">Project Manager</h2>
+        </div>
       </div>
-      <nav className="flex-grow py-4 overflow-y-auto">
+      {/* Mejorar el scroll visual del sidebar */}
+      <nav className="flex-grow py-4 overflow-y-auto custom-scrollbar">
         {/* Dashboard general fuera del menú de proyectos */}
         <ul className="space-y-1 px-2 mb-4">
           <li>

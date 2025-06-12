@@ -23,6 +23,11 @@ const historiaSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    puntos: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     proyecto: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Proyecto",
@@ -32,6 +37,16 @@ const historiaSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Epica",
       required: true,
+    },
+    sprintId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sprint",
+      default: null,
+    },
+    columnaId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Columna",
+      default: null,
     },
     estado: {
       type: String,

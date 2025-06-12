@@ -9,6 +9,7 @@ import tareasRoutes from "./routes/tareas.js"
 import epicasRoutes from "./routes/epicas.js"
 import historiasRoutes from "./routes/historias.js"
 import equiposRoutes from "./routes/equipos.js"
+import sprintsRoutes from "./routes/sprints.js"
 
 // Cargar variables de entorno
 dotenv.config()
@@ -28,6 +29,7 @@ app.use("/api/tareas", tareasRoutes)
 app.use("/api/epicas", epicasRoutes)
 app.use("/api/historias", historiasRoutes)
 app.use("/api/equipos", equiposRoutes)
+app.use("/api/sprints", sprintsRoutes)
 
 // Ruta de prueba
 app.get("/", (req, res) => {

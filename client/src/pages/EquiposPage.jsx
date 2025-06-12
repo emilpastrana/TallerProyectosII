@@ -1,167 +1,150 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import axios from "axios"
+import { Users, Plus, Eye, UserPlus, Crown, User } from "lucide-react"
 import Sidebar from "../components/common/Sidebar"
 import Footer from "../components/common/Footer"
+import EquipoForm from "../components/equipos/EquipoForm"
+import ConfirmDialog from "../components/equipos/ConfirmDialog"
 
 const EquiposPage = () => {
   const [equipos, setEquipos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [equipoEditando, setEquipoEditando] = useState(null)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [equipoAEliminar, setEquipoAEliminar] = useState(null)
+  const [loadingDelete, setLoadingDelete] = useState(false)
 
   useEffect(() => {
-    const fetchEquipos = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        // Datos simulados para equipos
-        const equiposSimulados = [
-          {
-            _id: "1",
-            nombre: "Equipo de Desarrollo",
-            descripcion: "Equipo encargado del desarrollo de software",
-            logo: "https://ui-avatars.com/api/?name=Dev+Team&background=random",
-            miembros: [
-              {
-                usuario: {
-                  _id: "u1",
-                  nombre: "Admin Usuario",
-                  avatar: "https://ui-avatars.com/api/?name=Admin+Usuario&background=random",
-                },
-                rol: "admin",
-              },
-              {
-                usuario: {
-                  _id: "u2",
-                  nombre: "Juan Pérez",
-                  avatar: "https://ui-avatars.com/api/?name=Juan+Perez&background=random",
-                },
-                rol: "miembro",
-              },
-              {
-                usuario: {
-                  _id: "u3",
-                  nombre: "María López",
-                  avatar: "https://ui-avatars.com/api/?name=Maria+Lopez&background=random",
-                },
-                rol: "miembro",
-              },
-              {
-                usuario: {
-                  _id: "u4",
-                  nombre: "Carlos Gómez",
-                  avatar: "https://ui-avatars.com/api/?name=Carlos+Gomez&background=random",
-                },
-                rol: "miembro",
-              },
-              {
-                usuario: {
-                  _id: "u5",
-                  nombre: "Ana Martínez",
-                  avatar: "https://ui-avatars.com/api/?name=Ana+Martinez&background=random",
-                },
-                rol: "miembro",
-              },
-            ],
-          },
-          {
-            _id: "2",
-            nombre: "Equipo de Diseño",
-            descripcion: "Equipo encargado del diseño de interfaces",
-            logo: "https://ui-avatars.com/api/?name=Design+Team&background=random",
-            miembros: [
-              {
-                usuario: {
-                  _id: "u1",
-                  nombre: "Admin Usuario",
-                  avatar: "https://ui-avatars.com/api/?name=Admin+Usuario&background=random",
-                },
-                rol: "admin",
-              },
-              {
-                usuario: {
-                  _id: "u2",
-                  nombre: "Juan Pérez",
-                  avatar: "https://ui-avatars.com/api/?name=Juan+Perez&background=random",
-                },
-                rol: "miembro",
-              },
-              {
-                usuario: {
-                  _id: "u4",
-                  nombre: "Carlos Gómez",
-                  avatar: "https://ui-avatars.com/api/?name=Carlos+Gomez&background=random",
-                },
-                rol: "miembro",
-              },
-            ],
-          },
-          {
-            _id: "3",
-            nombre: "Equipo de Marketing",
-            descripcion: "Equipo encargado de las estrategias de marketing",
-            logo: "https://ui-avatars.com/api/?name=Marketing+Team&background=random",
-            miembros: [
-              {
-                usuario: {
-                  _id: "u1",
-                  nombre: "Admin Usuario",
-                  avatar: "https://ui-avatars.com/api/?name=Admin+Usuario&background=random",
-                },
-                rol: "admin",
-              },
-              {
-                usuario: {
-                  _id: "u3",
-                  nombre: "María López",
-                  avatar: "https://ui-avatars.com/api/?name=Maria+Lopez&background=random",
-                },
-                rol: "miembro",
-              },
-              {
-                usuario: {
-                  _id: "u5",
-                  nombre: "Ana Martínez",
-                  avatar: "https://ui-avatars.com/api/?name=Ana+Martinez&background=random",
-                },
-                rol: "miembro",
-              },
-            ],
-          },
-        ]
-
-        // Intentar obtener equipos reales
-        try {
-          // Aquí iría la llamada a la API para obtener equipos reales
-          // const response = await axios.get("/api/equipos");
-          // setEquipos(response.data.equipos);
-
-          // Por ahora, usamos datos simulados
-          setEquipos(equiposSimulados)
-        } catch (err) {
-          console.error("Error al obtener equipos reales:", err)
-          setEquipos(equiposSimulados)
-        }
-
-        setLoading(false)
-      } catch (err) {
-        console.error("Error al cargar equipos:", err)
-        setError("Error al cargar los equipos. Por favor, intenta de nuevo más tarde.")
-        setLoading(false)
-      }
-    }
-
     fetchEquipos()
   }, [])
+
+  const fetchEquipos = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const token = localStorage.getItem("token")
+      const response = await axios.get("/api/equipos", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (response.data.success) {
+        setEquipos(response.data.equipos || [])
+      }
+    } catch (err) {
+      console.error("Error al cargar equipos:", err)
+      setError("Error al cargar los equipos. Por favor, intenta de nuevo más tarde.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCrearEquipo = () => {
+    setEquipoEditando(null)
+    setShowForm(true)
+  }
+
+  const handleEditarEquipo = (equipo) => {
+    setEquipoEditando(equipo)
+    setShowForm(true)
+  }
+
+  const handleEliminarEquipo = (equipo) => {
+    setEquipoAEliminar(equipo)
+    setShowConfirmDelete(true)
+  }
+
+  const confirmarEliminar = async () => {
+    if (!equipoAEliminar) return
+
+    try {
+      setLoadingDelete(true)
+      const token = localStorage.getItem("token")
+
+      await axios.delete(`/api/equipos/${equipoAEliminar._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      setEquipos(equipos.filter((e) => e._id !== equipoAEliminar._id))
+      setShowConfirmDelete(false)
+      setEquipoAEliminar(null)
+    } catch (err) {
+      console.error("Error al eliminar equipo:", err)
+      setError(err.response?.data?.message || "Error al eliminar el equipo")
+    } finally {
+      setLoadingDelete(false)
+    }
+  }
+
+  const handleSubmitForm = async (formData) => {
+    try {
+      const token = localStorage.getItem("token")
+
+      if (equipoEditando) {
+        // Actualizar equipo existente
+        const response = await axios.put(`/api/equipos/${equipoEditando._id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (response.data.success) {
+          await fetchEquipos() // Recargar la lista
+          setShowForm(false)
+          setEquipoEditando(null)
+        }
+      } else {
+        // Crear nuevo equipo
+        const response = await axios.post("/api/equipos", formData, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (response.data.success) {
+          await fetchEquipos() // Recargar la lista
+          setShowForm(false)
+        }
+      }
+    } catch (err) {
+      throw err // Re-lanzar el error para que lo maneje el formulario
+    }
+  }
+
+  const getRolIcon = (rol) => {
+    return rol === "admin" ? (
+      <Crown size={16} className="text-yellow-500" />
+    ) : (
+      <User size={16} className="text-gray-500" />
+    )
+  }
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
 
   return (
     <div className="dashboard-container">
       <Sidebar />
       <div className="main-content">
         <header className="dashboard-header">
-          <h1>Equipos</h1>
-          <button className="btn-primary">Nuevo Equipo</button>
+          <div>
+            <h1>
+              <Users size={28} style={{ display: "inline", marginRight: "0.5rem", color: "var(--primary-color)" }} />
+              Equipos
+            </h1>
+            <p style={{ color: "var(--text-light)", fontSize: "0.875rem", margin: "0.5rem 0 0 0" }}>
+              Gestiona los equipos de trabajo de tu organización
+            </p>
+          </div>
+          <button className="btn-primary" onClick={handleCrearEquipo}>
+            <Plus size={20} style={{ marginRight: "0.5rem" }} />
+            Nuevo Equipo
+          </button>
         </header>
 
         {error && <div className="error-message">{error}</div>}
@@ -171,40 +154,116 @@ const EquiposPage = () => {
             <div className="loading-spinner"></div>
             <p>Cargando equipos...</p>
           </div>
+        ) : equipos.length === 0 ? (
+          <div className="no-data">
+            <Users size={64} style={{ color: "var(--text-light)", marginBottom: "1rem" }} />
+            <h3>No hay equipos creados</h3>
+            <p>Crea tu primer equipo para comenzar a colaborar</p>
+            <button className="btn-primary" onClick={handleCrearEquipo}>
+              <Plus size={20} style={{ marginRight: "0.5rem" }} />
+              Crear Primer Equipo
+            </button>
+          </div>
         ) : (
           <div className="equipos-grid">
             {equipos.map((equipo) => (
               <div key={equipo._id} className="equipo-card">
                 <div className="equipo-header">
-                  <img src={equipo.logo || "/placeholder.svg"} alt={equipo.nombre} className="equipo-logo" />
-                  <h2 className="equipo-nombre">{equipo.nombre}</h2>
+                  <div className="equipo-logo">
+                    <img
+                      src={
+                        equipo.logo ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(equipo.nombre) || "/placeholder.svg"}&background=random`
+                      }
+                      alt={equipo.nombre}
+                    />
+                  </div>
+                  <div className="equipo-info">
+                    <h3 className="equipo-nombre">{equipo.nombre}</h3>
+                    <p className="equipo-fecha">Creado el {formatDate(equipo.createdAt)}</p>
+                  </div>
                 </div>
-                <p className="equipo-descripcion">{equipo.descripcion}</p>
+
+                {equipo.descripcion && <p className="equipo-descripcion">{equipo.descripcion}</p>}
+
+                <div className="equipo-stats">
+                  <div className="stat-item">
+                    <UserPlus size={16} />
+                    <span>{equipo.miembros?.length || 0} miembros</span>
+                  </div>
+                </div>
+
                 <div className="equipo-miembros">
-                  <h3>Miembros ({equipo.miembros.length})</h3>
-                  <div className="miembros-avatars">
-                    {equipo.miembros.slice(0, 5).map((miembro, index) => (
-                      <img
-                        key={index}
-                        src={miembro.usuario.avatar || "/placeholder.svg"}
-                        alt={miembro.usuario.nombre}
-                        className="miembro-avatar"
-                        title={`${miembro.usuario.nombre} (${miembro.rol})`}
-                      />
+                  <h4>Miembros</h4>
+                  <div className="miembros-list">
+                    {equipo.miembros?.slice(0, 4).map((miembro, index) => (
+                      <div key={index} className="miembro-item">
+                        <div className="miembro-avatar">
+                          <img
+                            src={
+                              miembro.usuario?.avatar ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(miembro.usuario?.nombre || "Usuario")}&background=random`
+                            }
+                            alt={miembro.usuario?.nombre || "Usuario"}
+                          />
+                        </div>
+                        <div className="miembro-info">
+                          <span className="miembro-nombre">{miembro.usuario?.nombre || "Usuario"}</span>
+                          <div className="miembro-rol">
+                            {getRolIcon(miembro.rol)}
+                            <span>{miembro.rol}</span>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                    {equipo.miembros.length > 5 && (
-                      <div className="miembro-avatar miembro-mas">+{equipo.miembros.length - 5}</div>
+                    {equipo.miembros?.length > 4 && (
+                      <div className="miembros-mas">+{equipo.miembros.length - 4} más</div>
                     )}
                   </div>
                 </div>
+
                 <div className="equipo-actions">
-                  <button className="btn-secondary">Ver Detalles</button>
-                  <button className="btn-edit">Editar</button>
-                  <button className="btn-delete">Eliminar</button>
+                  <button className="btn-icon" title="Ver detalles">
+                    <Eye size={16} />
+                  </button>
+                  <button className="btn-edit" onClick={() => handleEditarEquipo(equipo)} title="Editar equipo">
+                    Editar
+                  </button>
+                  <button className="btn-delete" onClick={() => handleEliminarEquipo(equipo)} title="Eliminar equipo">
+                    Eliminar
+                  </button>
                 </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* Solo renderizar el formulario si showForm es true */}
+        {showForm && (
+          <EquipoForm
+            equipo={equipoEditando}
+            onSubmit={handleSubmitForm}
+            onCancel={() => {
+              setShowForm(false)
+              setEquipoEditando(null)
+            }}
+            isOpen={showForm}
+          />
+        )}
+
+        {/* Solo renderizar el diálogo de confirmación si showConfirmDelete es true */}
+        {showConfirmDelete && (
+          <ConfirmDialog
+            isOpen={showConfirmDelete}
+            title="Eliminar Equipo"
+            message={`¿Estás seguro de que deseas eliminar el equipo "${equipoAEliminar?.nombre}"? Esta acción no se puede deshacer.`}
+            onConfirm={confirmarEliminar}
+            onCancel={() => {
+              setShowConfirmDelete(false)
+              setEquipoAEliminar(null)
+            }}
+            loading={loadingDelete}
+          />
         )}
 
         <Footer />

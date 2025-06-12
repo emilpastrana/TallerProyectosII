@@ -21,12 +21,6 @@ const Login = () => {
       [e.target.name]: e.target.value,
     })
 
-    // Limpiar  => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-
     // Limpiar error al cambiar el campo
     if (errors[e.target.name]) {
       setErrors({
@@ -82,6 +76,9 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-secondary-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="Project Manager Logo" className="w-16 h-16 object-contain" />
+          </div>
           <h1 className="text-3xl font-bold text-secondary-900">Iniciar Sesión</h1>
           <p className="mt-2 text-sm text-secondary-600">Ingresa tus credenciales para acceder a tu cuenta</p>
         </div>

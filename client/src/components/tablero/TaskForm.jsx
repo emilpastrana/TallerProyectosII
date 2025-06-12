@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { AlertCircle, Upload, X, FileText, ImageIcon, File } from "lucide-react"
+import { AlertCircle, FileText, ImageIcon, File } from "lucide-react"
 import axios from "axios"
 
 const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel }) => {
@@ -29,6 +29,9 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
   // Cargar datos de la tarea si estamos editando
   useEffect(() => {
     if (tarea) {
+      console.log("🎯 Datos completos de la tarea:", tarea)
+      console.log("👤 Usuario asignado:", tarea.asignado)
+
       setFormData({
         titulo: tarea.titulo || "",
         descripcion: tarea.descripcion || "",
@@ -54,67 +57,102 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
     const fetchUsuarios = async () => {
       try {
         setLoadingUsuarios(true)
+        let usuariosFinales = []
 
-        // Obtener todos los usuarios como fallback
-        const usuariosRes = await axios.get("/api/usuarios")
-
-        if (usuariosRes.data.success && usuariosRes.data.usuarios) {
-          setUsuarios(usuariosRes.data.usuarios)
-        } else {
-          throw new Error("No se pudieron cargar los usuarios")
-        }
-
-        // Si tenemos un proyectoId, intentar filtrar por equipo
+        // Si tenemos un proyectoId, intentar obtener usuarios del equipo
         if (proyectoId) {
           try {
+            console.log("🔍 Obteniendo proyecto:", proyectoId)
             // Obtener el proyecto para conseguir el equipo
             const proyectoRes = await axios.get(`/api/proyectos/${proyectoId}`)
+            console.log("📊 Datos del proyecto:", proyectoRes.data)
 
-            if (proyectoRes.data.success && proyectoRes.data.proyecto && proyectoRes.data.proyecto.equipo) {
-              const equipoId = proyectoRes.data.proyecto.equipo._id
+            if (proyectoRes.data.success && proyectoRes.data.proyecto?.equipo) {
+              const equipoId = proyectoRes.data.proyecto.equipo._id || proyectoRes.data.proyecto.equipo
+              console.log("👥 ID del equipo:", equipoId)
 
               // Obtener usuarios del equipo
               const equipoRes = await axios.get(`/api/equipos/${equipoId}`)
+              console.log("👥 Datos del equipo:", equipoRes.data)
 
-              if (equipoRes.data.success && equipoRes.data.equipo && equipoRes.data.equipo.miembros) {
-                // Extraer usuarios del equipo
-                const usuariosEquipo = equipoRes.data.equipo.miembros.map((miembro) => ({
-                  _id: miembro.usuario._id,
-                  nombre: miembro.usuario.nombre,
-                  avatar: miembro.usuario.avatar,
-                }))
+              if (equipoRes.data.success && equipoRes.data.equipo?.miembros) {
+                // Extraer usuarios del equipo y asegurarnos de que incluyan toda la información necesaria
+                usuariosFinales = equipoRes.data.equipo.miembros
+                  .filter((miembro) => miembro.usuario) // Asegurarnos de que el usuario existe
+                  .map((miembro) => {
+                    console.log("👤 Procesando miembro:", miembro)
+                    return {
+                      _id: miembro.usuario._id,
+                      nombre: miembro.usuario.nombre,
+                      avatar: miembro.usuario.avatar,
+                    }
+                  })
+                console.log("👥 Lista final de usuarios:", usuariosFinales)
 
-                if (usuariosEquipo.length > 0) {
-                  setUsuarios(usuariosEquipo)
+                // Si hay una tarea con usuario asignado, verificar que esté en la lista
+                if (tarea?.asignado) {
+                  const asignadoId = tarea.asignado._id || tarea.asignado
+                  const usuarioAsignadoExiste = usuariosFinales.some((u) => u._id === asignadoId)
+                  if (!usuarioAsignadoExiste) {
+                    // El usuario asignado no está en el equipo, intentar obtener sus datos
+                    try {
+                      const userRes = await axios.get(`/api/usuarios/${asignadoId}`)
+                      if (userRes.data.success && userRes.data.usuario) {
+                        usuariosFinales.push({
+                          _id: userRes.data.usuario._id,
+                          nombre: userRes.data.usuario.nombre || 'Usuario asignado',
+                          avatar: userRes.data.usuario.avatar,
+                        })
+                      } else {
+                        // Si no se pudo obtener el usuario, al menos agrega el id para que el select no quede vacío
+                        usuariosFinales.push({
+                          _id: asignadoId,
+                          nombre: 'Usuario asignado',
+                          avatar: '',
+                        })
+                      }
+                    } catch (err) {
+                      // Si hay error, igual agrega el id para que el select no quede vacío
+                      usuariosFinales.push({
+                        _id: asignadoId,
+                        nombre: 'Usuario asignado',
+                        avatar: '',
+                      })
+                      console.warn("⚠️ No se pudo obtener información del usuario asignado:", err)
+                    }
+                  }
                 }
+              } else {
+                console.warn("⚠️ No se encontraron miembros en el equipo")
               }
+            } else {
+              console.warn("⚠️ El proyecto no tiene equipo asignado")
             }
           } catch (equipoErr) {
-            console.warn("No se pudo filtrar usuarios por equipo:", equipoErr)
-            // Mantenemos los usuarios ya cargados como fallback
+            console.error("❌ Error al obtener usuarios del equipo:", equipoErr)
           }
+        } else {
+          console.warn("⚠️ No se proporcionó ID de proyecto")
         }
 
-        setLoadingUsuarios(false)
-      } catch (err) {
-        console.error("Error al cargar usuarios:", err)
-        setError("Error al cargar los usuarios. Se usarán datos predeterminados.")
+        setUsuarios(usuariosFinales)
         setLoadingUsuarios(false)
 
-        // Datos simulados como último recurso
-        const usuariosSimulados = [
-          { _id: "1", nombre: "Ana Martínez" },
-          { _id: "2", nombre: "Carlos Gómez" },
-          { _id: "3", nombre: "Juan Pérez" },
-          { _id: "4", nombre: "María López" },
-          { _id: "5", nombre: "Admin Usuario" },
-        ]
-        setUsuarios(usuariosSimulados)
+        // Debug del estado final
+        console.log("🔄 Estado final:", {
+          usuariosDisponibles: usuariosFinales,
+          asignadoActual: formData.asignado,
+          tareaAsignado: tarea?.asignado,
+        })
+      } catch (err) {
+        console.error("❌ Error al cargar usuarios:", err)
+        setError("Error al cargar los usuarios del equipo.")
+        setLoadingUsuarios(false)
       }
     }
 
     fetchUsuarios()
-  }, [proyectoId])
+  }, [proyectoId, tarea])
 
   const validateForm = () => {
     const errors = {}
@@ -133,6 +171,8 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
 
   const handleChange = (e) => {
     const { name, value } = e.target
+    console.log(`Campo ${name} cambiado a: ${value}`)
+
     setFormData({
       ...formData,
       [name]: value,
@@ -149,6 +189,10 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files)
+    console.log(
+      "📁 Archivos seleccionados:",
+      selectedFiles.map((f) => f.name),
+    )
     setArchivos([...archivos, ...selectedFiles])
   }
 
@@ -174,9 +218,12 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    console.log("🚀 Enviando formulario")
+    console.log("📝 Datos a enviar:", formData)
 
     // Validar formulario
     if (!validateForm()) {
+      console.warn("❌ Formulario inválido")
       return
     }
 
@@ -184,27 +231,23 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
     setError(null)
 
     try {
-      // Crear un FormData para enviar archivos
-      const formDataWithFiles = new FormData()
+      // Crear objeto con los datos a enviar
+      const dataToSend = { ...formData }
 
-      // Añadir los datos del formulario
-      Object.keys(formData).forEach((key) => {
-        formDataWithFiles.append(key, formData[key])
+      // Eliminar campos vacíos
+      Object.keys(dataToSend).forEach((key) => {
+        if (dataToSend[key] === "" || dataToSend[key] === null || dataToSend[key] === undefined) {
+          delete dataToSend[key]
+        }
       })
 
-      // Añadir los archivos
-      archivos.forEach((file) => {
-        formDataWithFiles.append("archivos", file)
-      })
+      console.log("📤 Datos finales a enviar:", dataToSend)
 
-      // Añadir los IDs de archivos previos que se mantienen
-      archivosPrevios.forEach((archivo) => {
-        formDataWithFiles.append("archivosPrevios", archivo._id)
-      })
-
-      await onSubmit(formDataWithFiles)
+      // Enviar datos
+      await onSubmit(dataToSend)
+      console.log("✅ Formulario enviado con éxito")
     } catch (err) {
-      console.error("Error al enviar el formulario:", err)
+      console.error("❌ Error al enviar el formulario:", err)
       setError(
         err.response?.data?.message || "Error al guardar la tarea. Por favor, verifica los datos e intenta de nuevo.",
       )
@@ -269,21 +312,25 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
             <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-primary-600 rounded-full"></div>
             <span>Cargando usuarios...</span>
           </div>
-        ) : (
+        ) : usuarios.length > 0 ? (
           <select
             id="asignado"
             name="asignado"
-            value={formData.asignado}
+            value={formData.asignado ? String(formData.asignado) : ""}
             onChange={handleChange}
             className="form-select"
           >
             <option value="">Sin asignar</option>
             {usuarios.map((usuario) => (
-              <option key={usuario._id} value={usuario._id}>
+              <option key={String(usuario._id)} value={String(usuario._id)}>
                 {usuario.nombre}
               </option>
             ))}
           </select>
+        ) : (
+          <div className="text-amber-600 text-sm">
+            No hay usuarios disponibles para este proyecto. Asigna un equipo al proyecto primero.
+          </div>
         )}
       </div>
 
@@ -349,84 +396,6 @@ const TaskForm = ({ tarea, columnaId, proyectoId, historiaId, onSubmit, onCancel
             className="form-input"
           />
         </div>
-      </div>
-
-      {/* Sección de archivos */}
-      <div>
-        <label className="block text-sm font-medium text-secondary-700 mb-1">Archivos adjuntos</label>
-
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-secondary-300 border-dashed rounded-md">
-          <div className="space-y-1 text-center">
-            <Upload className="mx-auto h-12 w-12 text-secondary-400" />
-            <div className="flex text-sm text-secondary-600">
-              <label
-                htmlFor="file-upload"
-                className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500"
-              >
-                <span>Subir archivos</span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  className="sr-only"
-                  multiple
-                  onChange={handleFileChange}
-                  ref={fileInputRef}
-                />
-              </label>
-              <p className="pl-1">o arrastra y suelta</p>
-            </div>
-            <p className="text-xs text-secondary-500">PNG, JPG, PDF, DOC hasta 10MB</p>
-          </div>
-        </div>
-
-        {/* Lista de archivos seleccionados */}
-        {archivos.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-secondary-700 mb-2">Archivos nuevos:</h4>
-            <ul className="divide-y divide-secondary-200 border border-secondary-200 rounded-md overflow-hidden">
-              {archivos.map((file, index) => (
-                <li key={index} className="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    {getFileIcon(file.type)}
-                    <span className="ml-2 truncate">{file.name}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(index)}
-                    className="ml-4 flex-shrink-0 text-secondary-400 hover:text-secondary-500"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Lista de archivos previos */}
-        {archivosPrevios.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-medium text-secondary-700 mb-2">Archivos existentes:</h4>
-            <ul className="divide-y divide-secondary-200 border border-secondary-200 rounded-md overflow-hidden">
-              {archivosPrevios.map((archivo) => (
-                <li key={archivo._id} className="pl-3 pr-4 py-3 flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    {getFileIcon(archivo.tipo)}
-                    <span className="ml-2 truncate">{archivo.nombre}</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removePreviousFile(archivo._id)}
-                    className="ml-4 flex-shrink-0 text-secondary-400 hover:text-secondary-500"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
       <div className="flex justify-end space-x-3 mt-6">

@@ -365,7 +365,7 @@ const ejecutarSeeders = async () => {
     const { columnas } = await crearTablerosYColumnas(proyectos)
     await crearTareas(proyectos, usuarios, columnas)
     const epicas = await crearEpicas(proyectos, usuarios)
-    const historias = await crearHistorias(epicas, proyectos, usuarios)
+    await crearHistorias(epicas, proyectos, usuarios)
 
     console.log("Datos de prueba creados exitosamente")
     process.exit(0)
