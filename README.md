@@ -1,5 +1,14 @@
 # 🧠 Plataforma de Gestión de Proyectos con IA – MERN Stack
 
+## APELLIDOS Y NOMBRES
+
+## Integrantes
+Condori Huarcaya Gian Piere 74022578
+Damian Espinoza Fran Sthip 61311942
+Pastrana Escobar Emil Brent 73655486
+Vladimir Jorge Bendezú Peña 46748916
+Llantoy Balbin Maria Milagros 77428439
+
 Aplicación web desarrollada con el stack **MERN** (MongoDB Atlas, Express.js, React.js con Vite y TailwindCSS, Node.js) que permite la **gestión colaborativa de proyectos**, integrando funcionalidades de **Inteligencia Artificial (IA)** para mejorar la productividad.
 
 ---
@@ -14,6 +23,7 @@ Aplicación web desarrollada con el stack **MERN** (MongoDB Atlas, Express.js, R
 - 📊 Panel administrativo con métricas y control de usuarios.
 
 ---
+
 
 ## ⚙️ Tecnologías Utilizadas
 
