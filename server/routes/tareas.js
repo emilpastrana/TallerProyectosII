@@ -12,6 +12,8 @@ import {
 } from "../controllers/tareasController.js"
 import { authMiddleware } from "../middleware/auth.js"
 
+// export const authMiddleware = (req, res, next) => next();
+
 const router = express.Router()
 
 // Configurar directorio de uploads
@@ -57,23 +59,23 @@ const handleMulterError = (err, req, res, next) => {
 }
 
 // Rutas para tareas
-router.post("/", authMiddleware, (req, res, next) => {
-  console.log("Campos recibidos en el formulario:", Object.keys(req.body))
-  console.log("Headers:", req.headers)
-
-  // Usar multer solo si hay archivos
-  if (req.headers["content-type"]?.includes("multipart/form-data")) {
-    upload.array("file-upload")(req, res, (err) => {
-      if (err) {
-        return handleMulterError(err, req, res, next)
-      }
-      console.log("Archivos recibidos:", req.files?.length || 0)
+router.post(
+  "/",
+  authMiddleware,
+  (req, res, next) => {
+    // Usar multer solo si hay archivos
+    if (req.headers["content-type"]?.includes("multipart/form-data")) {
+      upload.array("file-upload")(req, res, (err) => {
+        if (err) {
+          return handleMulterError(err, req, res, next)
+        }
+        crearTarea(req, res)
+      })
+    } else {
       crearTarea(req, res)
-    })
-  } else {
-    crearTarea(req, res)
+    }
   }
-})
+)
 
 router
   .route("/:id")

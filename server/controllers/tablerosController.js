@@ -453,6 +453,12 @@ export const moverHistoria = async (req, res) => {
       .populate("epicaId", "titulo")
       .populate("sprintId", "nombre numero")
 
+    // Siempre actualizar el estado de todas las tareas asociadas a la historia
+    await Tarea.updateMany(
+      { historiaId: historiaActualizada._id },
+      { $set: { estado: nuevoEstado } }
+    )
+
     console.log("✅ Historia movida exitosamente:", historiaActualizada._id)
     console.log("📋 Nuevo estado:", nuevoEstado)
 

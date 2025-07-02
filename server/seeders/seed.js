@@ -14,7 +14,7 @@ dotenv.config()
 
 // Conectar a MongoDB
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/projectManagement")
+  .connect(process.env.MONGO_URI )
   .then(() => console.log("MongoDB conectado para seeders"))
   .catch((err) => console.error("Error al conectar MongoDB:", err))
 

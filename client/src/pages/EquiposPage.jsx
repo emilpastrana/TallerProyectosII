@@ -64,17 +64,34 @@ const EquiposPage = () => {
     try {
       setLoadingDelete(true)
       const token = localStorage.getItem("token")
+      console.debug("[DEBUG] Intentando eliminar equipo", {
+        equipoAEliminar,
+        token,
+        endpoint: `/api/equipos/${equipoAEliminar._id}`,
+      })
 
-      await axios.delete(`/api/equipos/${equipoAEliminar._id}`, {
+      const response = await axios.delete(`/api/equipos/${equipoAEliminar._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+      console.debug("[DEBUG] Respuesta eliminación:", response)
 
       setEquipos(equipos.filter((e) => e._id !== equipoAEliminar._id))
       setShowConfirmDelete(false)
       setEquipoAEliminar(null)
     } catch (err) {
       console.error("Error al eliminar equipo:", err)
-      setError(err.response?.data?.message || "Error al eliminar el equipo")
+      if (err.response) {
+        console.error("[DEBUG] Error response:", err.response)
+        if (err.response.status === 404) {
+          setError("El equipo no existe o ya fue eliminado (404)")
+        } else if (err.response.status === 403) {
+          setError("No tienes permisos para eliminar este equipo (403)")
+        } else {
+          setError(err.response?.data?.message || "Error al eliminar el equipo")
+        }
+      } else {
+        setError("Error de red o servidor no disponible")
+      }
     } finally {
       setLoadingDelete(false)
     }
@@ -83,12 +100,14 @@ const EquiposPage = () => {
   const handleSubmitForm = async (formData) => {
     try {
       const token = localStorage.getItem("token")
+      console.debug("[DEBUG] handleSubmitForm", { formData, equipoEditando, token })
 
       if (equipoEditando) {
         // Actualizar equipo existente
         const response = await axios.put(`/api/equipos/${equipoEditando._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         })
+        console.debug("[DEBUG] Respuesta actualización:", response)
 
         if (response.data.success) {
           await fetchEquipos() // Recargar la lista
@@ -100,6 +119,7 @@ const EquiposPage = () => {
         const response = await axios.post("/api/equipos", formData, {
           headers: { Authorization: `Bearer ${token}` },
         })
+        console.debug("[DEBUG] Respuesta creación:", response)
 
         if (response.data.success) {
           await fetchEquipos() // Recargar la lista
@@ -107,6 +127,7 @@ const EquiposPage = () => {
         }
       }
     } catch (err) {
+      console.error("[DEBUG] Error en handleSubmitForm:", err)
       throw err // Re-lanzar el error para que lo maneje el formulario
     }
   }
@@ -266,7 +287,7 @@ const EquiposPage = () => {
           />
         )}
 
-        <Footer />
+
       </div>
     </div>
   )

@@ -530,7 +530,6 @@ const SprintsPage = () => {
             </div>
           )}
         </div>
-        <Footer />
       </div>
     </div>
   )

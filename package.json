@@ -11,7 +11,7 @@
     "install-server": "cd server && npm install",
     "install-client": "cd client && npm install",
     "seed": "cd server && npm run seed",
-    "install-all": "npm install && npm run install-server && npm run install-client && npm run seed"
+    "install-all": "npm install && npm run install-server && npm run install-client"
   },
   "keywords": [
     "mern",
@@ -21,6 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "concurrently": "^8.2.1",
+    "dotenv": "^17.0.1",
     "install-all": "^1.1.0",
     "multer": "^2.0.1"
   },

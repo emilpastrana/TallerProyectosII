@@ -26,6 +26,31 @@ export const getProyectos = async (req, res) => {
   }
 }
 
+export const dataProyectos = async (req, res) => {
+  try {
+    const proyectos = await Proyecto.find()
+      .populate("equipo")
+      .populate("epicas")
+      .populate("historias")
+      .populate("tareas")
+      .sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      count: proyectos.length,
+      proyectos,
+    })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener proyectos",
+      error: error.message,
+    })
+  }
+}
+
+
 // @desc    Obtener un proyecto por ID
 // @route   GET /api/proyectos/:id
 // @access  Private

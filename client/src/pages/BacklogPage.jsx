@@ -1060,7 +1060,6 @@ const BacklogPage = () => {
           )}
         </main>
 
-        <Footer />
       </div>
 
       {/* Modal para crear/editar épica */}

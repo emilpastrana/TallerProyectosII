@@ -26,7 +26,6 @@ export const getEquipos = async (req, res) => {
     })
   }
 }
-
 // @desc    Obtener un equipo por ID
 // @route   GET /api/equipos/:id
 // @access  Private
@@ -68,10 +67,6 @@ const isValidObjectId = (id) => {
 export const crearEquipo = async (req, res) => {
   try {
     const { nombre, descripcion, miembros } = req.body
-
-    console.log("=== CREAR EQUIPO ===")
-    console.log("Datos recibidos:", { nombre, descripcion, miembros })
-    console.log("Usuario creador:", req.usuario.id)
 
     // Validaciones
     if (!nombre) {
@@ -228,7 +223,7 @@ export const actualizarEquipo = async (req, res) => {
     }
 
     // Verificar si el usuario es admin del equipo
-    const equipo = await Equipo.findById(req.params.id)
+const equipo = await Equipo.findById(req.params.id)
     if (!equipo) {
       return res.status(404).json({
         success: false,
@@ -397,6 +392,21 @@ export const agregarMiembro = async (req, res) => {
     })
 
     await equipo.save()
+
+     // Crear notificación para el nuevo miembro
+    await crearNotificacion(
+      usuario._id,
+      "equipo",
+      "Añadido a equipo",
+      `Has sido añadido al equipo "${equipo.nombre}"`,
+      {
+        entidadId: equipo._id,
+        tipoEntidad: "equipo",
+      },
+      {
+        ruta: `/equipos/${equipo._id}`,
+      },
+    )
 
     res.status(200).json({
       success: true,

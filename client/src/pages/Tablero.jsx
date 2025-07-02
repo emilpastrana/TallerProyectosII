@@ -354,7 +354,6 @@ const Tablero = () => {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
 
       {/* Componente de error flotante */}

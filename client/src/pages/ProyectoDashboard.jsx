@@ -76,7 +76,7 @@ const ProyectoDashboard = () => {
             <ProjectDashboard proyectoId={id} />
           )}
 
-          <Footer />
+
         </div>
       </div>
     </div>
