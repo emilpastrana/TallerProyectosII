@@ -107,12 +107,12 @@ const Sidebar = () => {
   const generalMenuItems = [
     // Solo mostrar Equipos si el usuario es admin
     ...(userRole === "admin" ? [{ name: "Equipos", path: "/equipos", icon: <Users size={20} /> }] : []),
-        ...(userRole === "admin"
-      ? [{ name: "AlertasIA", path: `/tareas/${selectedProyecto}`, icon: <CheckSquare size={20} /> }]
-      : []),
     { name: "Mensajes", path: "/mensajes", icon: <MessageSquare size={20} /> },
     { name: "Notificaciones", path: "/notificaciones", icon: <Bell size={20} /> },
     { name: "IA Asistente", path: "/ia-asistente", icon: <Bot size={20} /> },
+            ...(userRole === "admin"
+      ? [{ name: "AlertasIA", path: `/tareas/${selectedProyecto}`, icon: <CheckSquare size={20} /> }]
+      : []),
     { name: "Configuración", path: "/configuracion", icon: <Settings size={20} /> },
   ]
 
