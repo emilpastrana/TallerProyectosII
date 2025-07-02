@@ -792,6 +792,266 @@ a:hover {
   color: var(--text-light);
 }
 
+/* Equipos - Estilos mejorados usando clases existentes */
+.equipos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.equipo-card {
+  background-color: var(--card-background);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+}
+
+.equipo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.equipo-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.equipo-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.equipo-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.equipo-info h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.equipo-fecha {
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin: 0.25rem 0 0 0;
+}
+
+.equipo-descripcion {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+.equipo-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.875rem;
+}
+
+.equipo-miembros h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.miembros-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.miembro-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.miembro-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--secondary-color);
+}
+
+.miembro-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miembro-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.miembro-nombre {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+  display: block;
+}
+
+.miembro-rol {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: capitalize;
+}
+
+.miembros-mas {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.equipo-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Usuarios grid para formulario */
+.usuarios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  background: var(--secondary-color);
+}
+
+.usuario-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--card-background);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.usuario-card:hover {
+  background: var(--secondary-color);
+}
+
+.usuario-card.selected {
+  border-color: var(--primary-color);
+  background: #eef2ff;
+}
+
+.usuario-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-background);
+  transition: var(--transition);
+}
+
+.usuario-card.selected .usuario-checkbox {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+}
+
+.usuario-avatar {
+  width: 36px;
+  height: 36px;
+  background: var(--secondary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-light);
+}
+
+.usuario-info h4 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.usuario-info p {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin: 0.25rem 0 0 0;
+}
+
+.miembros-count {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  font-weight: 500;
+  margin-top: 0.5rem;
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--secondary-color);
+  border-radius: var(--radius);
+}
+
+.loading-usuarios {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  color: var(--text-light);
+}
+
+.loading-spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--secondary-color);
+  border-top: 2px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 /* Kanban Board */
 .kanban-board {
   overflow-x: auto;
@@ -1329,4 +1589,26 @@ a:hover {
 
 .no-chat-icon {
   font-size: 3rem;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #444458 #262a3f;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: #232946;
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #212242;
+  border-radius: 8px;
+  border: 2px solid #232946;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0d0e14;
 }

@@ -19,8 +19,6 @@ import {
   LogOut,
   SmartphoneIcon as Sprint,
   BookOpen,
-  BarChart2,
-  Calendar,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -34,6 +32,20 @@ const Sidebar = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [expandedProyectos, setExpandedProyectos] = useState(true)
+  const [userRole, setUserRole] = useState(null)
+
+  // Obtener el rol del usuario
+  useEffect(() => {
+    const user = localStorage.getItem("user")
+    if (user) {
+      try {
+        const userData = JSON.parse(user)
+        setUserRole(userData.rol)
+      } catch (error) {
+        console.error("Error al parsear datos del usuario:", error)
+      }
+    }
+  }, [])
 
   // Cargar proyectos
   useEffect(() => {
@@ -88,14 +100,16 @@ const Sidebar = () => {
     { name: "Backlog", path: `/backlog/${selectedProyecto}`, icon: <BookOpen size={20} /> },
     { name: "Sprints", path: `/sprints/${selectedProyecto}`, icon: <Sprint size={20} /> },
     { name: "Tablero", path: `/tableros/${selectedProyecto}`, icon: <Kanban size={20} /> },
-    { name: "Tareas", path: `/tareas/${selectedProyecto}`, icon: <CheckSquare size={20} /> },
-    { name: "Calendario", path: `/calendario/${selectedProyecto}`, icon: <Calendar size={20} /> },
-    { name: "Reportes", path: `/reportes/${selectedProyecto}`, icon: <BarChart2 size={20} /> },
+    // Solo mostrar Tareas si el usuario es admin
   ]
 
   // Opciones generales
   const generalMenuItems = [
-    { name: "Equipos", path: "/equipos", icon: <Users size={20} /> },
+    // Solo mostrar Equipos si el usuario es admin
+    ...(userRole === "admin" ? [{ name: "Equipos", path: "/equipos", icon: <Users size={20} /> }] : []),
+        ...(userRole === "admin"
+      ? [{ name: "AlertasIA", path: `/tareas/${selectedProyecto}`, icon: <CheckSquare size={20} /> }]
+      : []),
     { name: "Mensajes", path: "/mensajes", icon: <MessageSquare size={20} /> },
     { name: "Notificaciones", path: "/notificaciones", icon: <Bell size={20} /> },
     { name: "IA Asistente", path: "/ia-asistente", icon: <Bot size={20} /> },
@@ -103,11 +117,15 @@ const Sidebar = () => {
   ]
 
   return (
-    <div className="w-64 bg-secondary-800 text-white h-screen flex flex-col fixed">
+    <div className="w-64 bg-secondary-800 text-white h-screen flex flex-col fixed shadow-lg">
       <div className="p-6 border-b border-secondary-700">
-        <h2 className="text-xl font-bold">Project Manager</h2>
+        <div className="flex items-center space-x-3">
+          <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain" />
+          <h2 className="text-xl font-bold">Project Manager</h2>
+        </div>
       </div>
-      <nav className="flex-grow py-4 overflow-y-auto">
+      {/* Mejorar el scroll visual del sidebar */}
+      <nav className="flex-grow py-4 overflow-y-auto custom-scrollbar">
         {/* Dashboard general fuera del menú de proyectos */}
         <ul className="space-y-1 px-2 mb-4">
           <li>
@@ -166,7 +184,7 @@ const Sidebar = () => {
                 className="flex items-center px-2 py-1.5 text-sm text-secondary-300 hover:bg-secondary-700 hover:text-white rounded-md"
               >
                 <Plus size={16} className="mr-2" />
-                <span>Nuevo proyecto</span>
+                <span>Gestionar proyectos</span>
               </Link>
             </div>
           )}

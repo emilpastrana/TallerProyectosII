@@ -5,7 +5,7 @@ import { useParams } from "react-router-dom"
 import axios from "axios"
 import Sidebar from "../components/common/Sidebar"
 import Footer from "../components/common/Footer"
-import { ChevronDown, ChevronRight, Plus, Edit, Trash2, AlertCircle, FileText, CheckSquare, Info } from "lucide-react"
+import { ChevronDown, ChevronRight, Plus, Edit, Trash2, AlertCircle, FileText, CheckSquare, Info } from 'lucide-react'
 
 const BacklogPage = () => {
   const { proyectoId } = useParams()
@@ -23,6 +23,8 @@ const BacklogPage = () => {
   const [currentEpica, setCurrentEpica] = useState(null)
   const [currentHistoria, setCurrentHistoria] = useState(null)
   const [currentTarea, setCurrentTarea] = useState(null)
+  const [selectedEpicaId, setSelectedEpicaId] = useState(null)
+  const [selectedHistoriaId, setSelectedHistoriaId] = useState(null)
   const [formData, setFormData] = useState({
     titulo: "",
     descripcion: "",
@@ -52,6 +54,62 @@ const BacklogPage = () => {
   const [loadingUsuarios, setLoadingUsuarios] = useState(false)
   const [archivo, setArchivo] = useState(null)
 
+  // Función para recargar todos los datos del backlog
+  const recargarBacklog = async () => {
+    console.log("🔄 Recargando todos los datos del backlog...")
+
+    try {
+      // Cargar épicas
+      const epicasRes = await axios.get(`/api/epicas/proyecto/${proyectoId}`)
+      console.log("📊 Épicas recargadas:", epicasRes.data)
+      if (epicasRes.data.success) {
+        setEpicas(epicasRes.data.epicas || [])
+        console.log("✅ Épicas actualizadas:", epicasRes.data.epicas?.length || 0)
+      }
+
+      // Cargar historias
+      const historiasRes = await axios.get(`/api/historias/proyecto/${proyectoId}`)
+      console.log("📊 Historias recargadas:", historiasRes.data)
+      if (historiasRes.data.success) {
+        const historiasData = historiasRes.data.historias || []
+        setHistorias(historiasData)
+        console.log("✅ Historias actualizadas:", historiasData.length)
+        
+        // Log detallado de cada historia
+        console.log("📋 Detalles de historias cargadas:")
+        historiasData.forEach((historia, index) => {
+          console.log(`  ${index + 1}. ID: ${historia._id}`)
+          console.log(`     Título: ${historia.titulo}`)
+          console.log(`     ÉpicaId: ${historia.epicaId}`)
+          console.log(`     ÉpicaId tipo:`, typeof historia.epicaId)
+          if (historia.epicaId && typeof historia.epicaId === 'object') {
+            console.log(`     ÉpicaId._id: ${historia.epicaId._id}`)
+          }
+        })
+      }
+
+      // Cargar tareas
+      const tareasRes = await axios.get(`/api/tareas/proyecto/${proyectoId}`)
+      console.log("📊 Tareas recargadas:", tareasRes.data)
+      if (tareasRes.data.success) {
+        const tareasData = tareasRes.data.tareas || []
+        setTareas(tareasData)
+        console.log("✅ Tareas actualizadas:", tareasData.length)
+        
+        // Log detallado de cada tarea
+        console.log("📋 Detalles de tareas cargadas:")
+        tareasData.forEach((tarea, index) => {
+          console.log(`  ${index + 1}. ID: ${tarea._id}`)
+          console.log(`     Título: ${tarea.titulo}`)
+          console.log(`     HistoriaId: ${tarea.historiaId}`)
+          console.log(`     HistoriaId tipo:`, typeof tarea.historiaId)
+        })
+      }
+    } catch (err) {
+      console.error("❌ Error al recargar backlog:", err)
+    }
+  }
+
   // Cargar datos del proyecto
   useEffect(() => {
     const fetchProyecto = async () => {
@@ -59,16 +117,19 @@ const BacklogPage = () => {
         setLoading(true)
         setError(null)
 
+        console.log("🔍 Cargando proyecto:", proyectoId)
+
         // Obtener datos del proyecto
         const proyectoRes = await axios.get(`/api/proyectos/${proyectoId}`)
         if (!proyectoRes.data.success) {
           throw new Error("Error al cargar el proyecto")
         }
 
+        console.log("✅ Proyecto cargado:", proyectoRes.data.proyecto)
         setProyecto(proyectoRes.data.proyecto)
         setLoading(false)
       } catch (err) {
-        console.error("Error al cargar el proyecto:", err)
+        console.error("❌ Error al cargar el proyecto:", err)
         setError(`Error al cargar el proyecto: ${err.message}`)
         setLoading(false)
       }
@@ -84,60 +145,29 @@ const BacklogPage = () => {
     const fetchUsuarios = async () => {
       try {
         setLoadingUsuarios(true)
+        console.log("🔍 Cargando usuarios...")
 
-        // Obtener todos los usuarios como fallback
+        // Obtener todos los usuarios
         const usuariosRes = await axios.get("/api/usuarios")
+        console.log("📊 Respuesta usuarios:", usuariosRes.data)
 
         if (usuariosRes.data.success && usuariosRes.data.usuarios) {
+          console.log("✅ Usuarios cargados:", usuariosRes.data.usuarios.length)
           setUsuarios(usuariosRes.data.usuarios)
         } else {
           throw new Error("No se pudieron cargar los usuarios")
         }
 
-        // Si tenemos un proyectoId, intentar filtrar por equipo
-        if (proyectoId && proyecto && proyecto.equipo) {
-          try {
-            // Obtener usuarios del equipo
-            const equipoId = proyecto.equipo._id
-            const equipoRes = await axios.get(`/api/equipos/${equipoId}`)
-
-            if (equipoRes.data.success && equipoRes.data.equipo && equipoRes.data.equipo.miembros) {
-              // Extraer usuarios del equipo
-              const usuariosEquipo = equipoRes.data.equipo.miembros.map((miembro) => ({
-                _id: miembro.usuario._id,
-                nombre: miembro.usuario.nombre,
-                avatar: miembro.usuario.avatar,
-              }))
-
-              if (usuariosEquipo.length > 0) {
-                setUsuarios(usuariosEquipo)
-              }
-            }
-          } catch (equipoErr) {
-            console.warn("No se pudo filtrar usuarios por equipo:", equipoErr)
-            // Mantenemos los usuarios ya cargados como fallback
-          }
-        }
-
         setLoadingUsuarios(false)
       } catch (err) {
-        console.error("Error al cargar usuarios:", err)
+        console.error("❌ Error al cargar usuarios:", err)
         setLoadingUsuarios(false)
-
-        // Datos simulados como último recurso
-        const usuariosSimulados = [
-          { _id: "1", nombre: "Ana Martínez" },
-          { _id: "2", nombre: "Carlos Gómez" },
-          { _id: "3", nombre: "Juan Pérez" },
-          { _id: "4", nombre: "María López" },
-          { _id: "5", nombre: "Admin Usuario" },
-        ]
-        setUsuarios(usuariosSimulados)
+        setUsuarios([])
       }
     }
 
     fetchUsuarios()
-  }, [proyectoId, proyecto])
+  }, [])
 
   // Cargar épicas, historias y tareas
   useEffect(() => {
@@ -147,14 +177,19 @@ const BacklogPage = () => {
           setLoading(true)
           setError(null)
 
+          console.log("🔍 Cargando elementos del backlog para proyecto:", proyectoId)
+
           // Cargar épicas
           try {
             const epicasRes = await axios.get(`/api/epicas/proyecto/${proyectoId}`)
+            console.log("📊 Respuesta épicas:", epicasRes.data)
             if (epicasRes.data.success) {
-              setEpicas(epicasRes.data.epicas || [])
+              const epicasData = epicasRes.data.epicas || []
+              setEpicas(epicasData)
+              console.log("✅ Épicas cargadas:", epicasData.length)
             }
           } catch (epicasErr) {
-            console.warn("Error al cargar épicas:", epicasErr)
+            console.warn("⚠️ Error al cargar épicas:", epicasErr)
             setEpicas([])
           }
 
@@ -162,27 +197,42 @@ const BacklogPage = () => {
           try {
             const historiasRes = await axios.get(`/api/historias/proyecto/${proyectoId}`)
             if (historiasRes.data.success) {
-              setHistorias(historiasRes.data.historias || [])
+              const historiasData = historiasRes.data.historias || []
+              setHistorias(historiasData)
+              console.log("✅ Historias cargadas:", historiasData.length)
+
             }
           } catch (historiasErr) {
-            console.warn("Error al cargar historias:", historiasErr)
+            console.warn("⚠️ Error al cargar historias:", historiasErr)
             setHistorias([])
           }
 
           // Cargar tareas
           try {
             const tareasRes = await axios.get(`/api/tareas/proyecto/${proyectoId}`)
+            console.log("📊 Respuesta tareas:", tareasRes.data)
             if (tareasRes.data.success) {
-              setTareas(tareasRes.data.tareas || [])
+              const tareasData = tareasRes.data.tareas || []
+              setTareas(tareasData)
+              console.log("✅ Tareas cargadass:", tareasData.length)
+              
+              // Log detallado de cada tarea
+              console.log("📋 Detalles de tareas cargadas:")
+              tareasData.forEach((tarea, index) => {
+                console.log(`  ${index + 1}. ID: ${tarea._id}`)
+                console.log(`     Título: ${tarea.titulo}`)
+                console.log(`     HistoriaId: ${tarea.historiaId}`)
+                console.log(`     HistoriaId tipo:`, typeof tarea.historiaId)
+              })
             }
           } catch (tareasErr) {
-            console.warn("Error al cargar tareas:", tareasErr)
+            console.warn("⚠️ Error al cargar tareas:", tareasErr)
             setTareas([])
           }
 
           setLoading(false)
         } catch (err) {
-          console.error("Error al cargar elementos del backlog:", err)
+          console.error("❌ Error al cargar elementos del backlog:", err)
           setError(`Error al cargar elementos del backlog: ${err.message}`)
           setLoading(false)
         }
@@ -208,6 +258,7 @@ const BacklogPage = () => {
 
   // Funciones para épicas
   const handleCreateEpica = () => {
+    console.log("🆕 Creando nueva épica")
     setCurrentEpica(null)
     setFormData({
       titulo: "",
@@ -219,6 +270,7 @@ const BacklogPage = () => {
   }
 
   const handleEditEpica = (epica) => {
+    console.log("✏️ Editando épica:", epica)
     setCurrentEpica(epica)
     setFormData({
       titulo: epica.titulo,
@@ -236,17 +288,17 @@ const BacklogPage = () => {
       )
     ) {
       try {
+        console.log("🗑️ Eliminando épica:", epicaId)
         const res = await axios.delete(`/api/epicas/${epicaId}`)
         if (res.data.success) {
-          setEpicas(epicas.filter((e) => e._id !== epicaId))
-          // También filtrar historias y tareas asociadas
-          setHistorias(historias.filter((h) => h.epicaId !== epicaId))
-          setTareas(tareas.filter((t) => !historias.some((h) => h.epicaId === epicaId && h._id === t.historiaId)))
+          console.log("✅ Épica eliminada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al eliminar la épica")
         }
       } catch (err) {
-        console.error("Error al eliminar la épica:", err)
+        console.error("❌ Error al eliminar la épica:", err)
         setError(`Error al eliminar la épica: ${err.message}`)
       }
     }
@@ -255,6 +307,7 @@ const BacklogPage = () => {
   const handleEpicaSubmit = async (e) => {
     e.preventDefault()
     try {
+      console.log("💾 Guardando épica:", formData)
       const epicaData = {
         ...formData,
         proyecto: proyectoId,
@@ -262,17 +315,25 @@ const BacklogPage = () => {
 
       if (currentEpica) {
         // Actualizar épica
+        console.log("✏️ Actualizando épica existente:", currentEpica._id)
         const res = await axios.put(`/api/epicas/${currentEpica._id}`, epicaData)
+        console.log("📊 Respuesta actualización épica:", res.data)
         if (res.data.success) {
-          setEpicas(epicas.map((e) => (e._id === currentEpica._id ? res.data.epica : e)))
+          console.log("✅ Épica actualizada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al actualizar la épica")
         }
       } else {
         // Crear nueva épica
+        console.log("🆕 Creando nueva épica")
         const res = await axios.post("/api/epicas", epicaData)
+        console.log("📊 Respuesta creación épica:", res.data)
         if (res.data.success) {
-          setEpicas([...epicas, res.data.epica])
+          console.log("✅ Épica creada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al crear la épica")
         }
@@ -280,14 +341,16 @@ const BacklogPage = () => {
 
       setShowEpicaForm(false)
     } catch (err) {
-      console.error("Error al guardar la épica:", err)
+      console.error("❌ Error al guardar la épica:", err)
       setError(`Error al guardar la épica: ${err.message}`)
     }
   }
 
   // Funciones para historias
   const handleCreateHistoria = (epicaId) => {
+    console.log("🆕 Creando nueva historia para épica:", epicaId)
     setCurrentHistoria(null)
+    setSelectedEpicaId(epicaId)
     setHistoriaData({
       titulo: "",
       descripcion: "",
@@ -296,13 +359,16 @@ const BacklogPage = () => {
       comoUsuario: "",
       quiero: "",
       para: "",
-      epicaId: epicaId,
     })
     setShowHistoriaForm(true)
   }
 
   const handleEditHistoria = (historia) => {
+    console.log("✏️ Editando historia:", historia)
     setCurrentHistoria(historia)
+    // Extraer el ID de la épica correctamente
+    const epicaId = historia.epicaId?._id || historia.epicaId
+    setSelectedEpicaId(epicaId)
     setHistoriaData({
       titulo: historia.titulo,
       descripcion: historia.descripcion,
@@ -311,7 +377,6 @@ const BacklogPage = () => {
       comoUsuario: historia.comoUsuario || "",
       quiero: historia.quiero || "",
       para: historia.para || "",
-      epicaId: historia.epicaId,
     })
     setShowHistoriaForm(true)
   }
@@ -323,16 +388,18 @@ const BacklogPage = () => {
       )
     ) {
       try {
+        console.log("🗑️ Eliminando historia:", historiaId)
         const res = await axios.delete(`/api/historias/${historiaId}`)
+        console.log("📊 Respuesta eliminación historia:", res.data)
         if (res.data.success) {
-          setHistorias(historias.filter((h) => h._id !== historiaId))
-          // También filtrar tareas asociadas
-          setTareas(tareas.filter((t) => t.historiaId !== historiaId))
+          console.log("✅ Historia eliminada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al eliminar la historia")
         }
       } catch (err) {
-        console.error("Error al eliminar la historia:", err)
+        console.error("❌ Error al eliminar la historia:", err)
         setError(`Error al eliminar la historia: ${err.message}`)
       }
     }
@@ -341,39 +408,60 @@ const BacklogPage = () => {
   const handleHistoriaSubmit = async (e) => {
     e.preventDefault()
     try {
+      console.log("💾 Guardando historia...")
+      console.log("📍 Datos de historia:", historiaData)
+      console.log("📍 Épica seleccionada:", selectedEpicaId)
+      console.log("📍 Proyecto ID:", proyectoId)
+
       const historiaDataToSend = {
         ...historiaData,
         proyecto: proyectoId,
+        epicaId: selectedEpicaId,
       }
+
+      console.log("📤 Datos completos a enviar:", historiaDataToSend)
 
       if (currentHistoria) {
         // Actualizar historia
+        console.log("✏️ Actualizando historia existente:", currentHistoria._id)
         const res = await axios.put(`/api/historias/${currentHistoria._id}`, historiaDataToSend)
+        console.log("📊 Respuesta actualización historia:", res.data)
         if (res.data.success) {
-          setHistorias(historias.map((h) => (h._id === currentHistoria._id ? res.data.historia : h)))
+          console.log("✅ Historia actualizada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al actualizar la historia")
         }
       } else {
         // Crear nueva historia
+        console.log("🆕 Creando nueva historia")
         const res = await axios.post("/api/historias", historiaDataToSend)
+        console.log("📊 Respuesta creación historia:", res.data)
         if (res.data.success) {
-          setHistorias([...historias, res.data.historia])
+          console.log("✅ Historia creada correctamente con ID:", res.data.historia._id)
+          console.log("📋 Historia completa:", res.data.historia)
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al crear la historia")
         }
       }
 
       setShowHistoriaForm(false)
+      setSelectedEpicaId(null)
     } catch (err) {
-      console.error("Error al guardar la historia:", err)
-      setError(`Error al guardar la historia: ${err.message}`)
+      console.error("❌ Error al guardar la historia:", err)
+      console.error("📊 Detalles del error:", err.response?.data)
+      setError(`Error al guardar la historia: ${err.response?.data?.message || err.message}`)
     }
   }
 
   // Funciones para tareas
   const handleCreateTarea = (historiaId) => {
+    console.log("🆕 Creando nueva tarea para historia:", historiaId)
     setCurrentTarea(null)
+    setSelectedHistoriaId(historiaId)
     setTareaData({
       titulo: "",
       descripcion: "",
@@ -383,14 +471,15 @@ const BacklogPage = () => {
       asignado: "",
       tiempoEstimado: "",
       fechaLimite: "",
-      historiaId: historiaId,
     })
     setArchivo(null)
     setShowTareaForm(true)
   }
 
   const handleEditTarea = (tarea) => {
+    console.log("✏️ Editando tarea:", tarea)
     setCurrentTarea(tarea)
+    setSelectedHistoriaId(tarea.historiaId)
     setTareaData({
       titulo: tarea.titulo,
       descripcion: tarea.descripcion,
@@ -400,7 +489,6 @@ const BacklogPage = () => {
       asignado: tarea.asignado?._id || tarea.asignado || "",
       tiempoEstimado: tarea.tiempoEstimado || "",
       fechaLimite: tarea.fechaLimite ? new Date(tarea.fechaLimite).toISOString().split("T")[0] : "",
-      historiaId: tarea.historiaId,
     })
     setArchivo(null)
     setShowTareaForm(true)
@@ -409,14 +497,18 @@ const BacklogPage = () => {
   const handleDeleteTarea = async (tareaId) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
       try {
+        console.log("🗑️ Eliminando tarea:", tareaId)
         const res = await axios.delete(`/api/tareas/${tareaId}`)
+        console.log("📊 Respuesta eliminación tarea:", res.data)
         if (res.data.success) {
-          setTareas(tareas.filter((t) => t._id !== tareaId))
+          console.log("✅ Tarea eliminada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al eliminar la tarea")
         }
       } catch (err) {
-        console.error("Error al eliminar la tarea:", err)
+        console.error("❌ Error al eliminar la tarea:", err)
         setError(`Error al eliminar la tarea: ${err.message}`)
       }
     }
@@ -425,57 +517,87 @@ const BacklogPage = () => {
   const handleTareaSubmit = async (e) => {
     e.preventDefault()
     try {
+      console.log("💾 Guardando tarea...")
+      console.log("📍 Datos de tarea:", tareaData)
+      console.log("📍 Historia seleccionada:", selectedHistoriaId)
+      console.log("📍 Proyecto ID:", proyectoId)
+
       // Crear FormData para enviar archivos
       const formData = new FormData()
 
       // Añadir los datos de la tarea
       Object.keys(tareaData).forEach((key) => {
-        formData.append(key, tareaData[key])
+        if (tareaData[key] !== "") {
+          formData.append(key, tareaData[key])
+        }
       })
 
-      // Añadir el proyecto
+      // Añadir el proyecto y la historia
       formData.append("proyecto", proyectoId)
+      if (selectedHistoriaId) {
+        formData.append("historiaId", selectedHistoriaId)
+      }
 
       // Añadir archivo si existe
       if (archivo) {
         formData.append("archivo", archivo)
+        console.log("📎 Archivo adjunto:", archivo.name)
+      }
+
+      // Log de datos a enviar
+      console.log("📤 Datos a enviar:")
+      for (const pair of formData.entries()) {
+        console.log(`  ${pair[0]}: ${pair[1]}`)
       }
 
       if (currentTarea) {
         // Actualizar tarea
+        console.log("✏️ Actualizando tarea existente:", currentTarea._id)
         const res = await axios.put(`/api/tareas/${currentTarea._id}`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
+        console.log("📊 Respuesta actualización tarea:", res.data)
         if (res.data.success) {
-          setTareas(tareas.map((t) => (t._id === currentTarea._id ? res.data.tarea : t)))
+          console.log("✅ Tarea actualizada correctamente")
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al actualizar la tarea")
         }
       } else {
         // Crear nueva tarea
+        console.log("🆕 Creando nueva tarea")
         const res = await axios.post("/api/tareas", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         })
+        console.log("📊 Respuesta creación tarea:", res.data)
         if (res.data.success) {
-          setTareas([...tareas, res.data.tarea])
+          console.log("✅ Tarea creada correctamente con ID:", res.data.tarea._id)
+          console.log("📋 Tarea completa:", res.data.tarea)
+          // Recargar todos los datos
+          await recargarBacklog()
         } else {
           throw new Error(res.data.message || "Error al crear la tarea")
         }
       }
 
       setShowTareaForm(false)
+      setSelectedHistoriaId(null)
     } catch (err) {
-      console.error("Error al guardar la tarea:", err)
-      setError(`Error al guardar la tarea: ${err.message}`)
+      console.error("❌ Error al guardar la tarea:", err)
+      console.error("📊 Detalles del error:", err.response?.data)
+      setError(`Error al guardar la tarea: ${err.response?.data?.message || err.message}`)
     }
   }
 
   const handleFileChange = (e) => {
-    setArchivo(e.target.files[0])
+    const selectedFile = e.target.files[0]
+    setArchivo(selectedFile)
+    console.log("📎 Archivo seleccionado:", selectedFile?.name)
   }
 
   // Función para obtener el color según la prioridad
@@ -533,18 +655,77 @@ const BacklogPage = () => {
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
 
-  // Obtener historias de una épica
+  // Obtener historias de una épica - FUNCIÓN CORREGIDA
   const getHistoriasByEpica = (epicaId) => {
-    return historias.filter((historia) => historia.epicaId === epicaId)
+    console.log(`🔍 Buscando historias para épica: ${epicaId}`)
+    console.log(`📋 Total de historias disponibles: ${historias.length}`)
+    
+    const historiasDeEpica = historias.filter((historia) => {
+      // Manejar diferentes formatos de epicaId
+      let historiaEpicaId = null
+      
+      if (historia.epicaId) {
+        if (typeof historia.epicaId === 'string') {
+          historiaEpicaId = historia.epicaId
+        } else if (typeof historia.epicaId === 'object' && historia.epicaId._id) {
+          historiaEpicaId = historia.epicaId._id
+        }
+      }
+      
+      console.log(`  Historia "${historia.titulo}":`)
+      console.log(`    - ID: ${historia._id}`)
+      console.log(`    - EpicaId original: ${historia.epicaId}`)
+      console.log(`    - EpicaId procesado: ${historiaEpicaId}`)
+      console.log(`    - Coincide con ${epicaId}: ${historiaEpicaId === epicaId}`)
+      
+      return historiaEpicaId === epicaId
+    })
+    
+    console.log(`✅ Historias encontradas para épica ${epicaId}: ${historiasDeEpica.length}`)
+    historiasDeEpica.forEach((historia, index) => {
+      console.log(`  ${index + 1}. ${historia.titulo}`)
+    })
+    
+    return historiasDeEpica
   }
 
-  // Obtener tareas de una historia
+  // Obtener tareas de una historia - FUNCIÓN CORREGIDA
   const getTareasByHistoria = (historiaId) => {
-    return tareas.filter((tarea) => tarea.historiaId === historiaId)
+    console.log(`🔍 Buscando tareas para historia: ${historiaId}`)
+    console.log(`📋 Total de tareas disponibles: ${tareas.length}`)
+    
+    const tareasDeHistoria = tareas.filter((tarea) => {
+      // Manejar diferentes formatos de historiaId
+      let tareaHistoriaId = null
+      
+      if (tarea.historiaId) {
+        if (typeof tarea.historiaId === 'string') {
+          tareaHistoriaId = tarea.historiaId
+        } else if (typeof tarea.historiaId === 'object' && tarea.historiaId._id) {
+          tareaHistoriaId = tarea.historiaId._id
+        }
+      }
+      
+      console.log(`  Tarea "${tarea.titulo}":`)
+      console.log(`    - ID: ${tarea._id}`)
+      console.log(`    - HistoriaId original: ${tarea.historiaId}`)
+      console.log(`    - HistoriaId procesado: ${tareaHistoriaId}`)
+      console.log(`    - Coincide con ${historiaId}: ${tareaHistoriaId === historiaId}`)
+      
+      return tareaHistoriaId === historiaId
+    })
+    
+    console.log(`✅ Tareas encontradas para historia ${historiaId}: ${tareasDeHistoria.length}`)
+    tareasDeHistoria.forEach((tarea, index) => {
+      console.log(`  ${index + 1}. ${tarea.titulo}`)
+    })
+    
+    return tareasDeHistoria
   }
 
   // Obtener nombre de usuario asignado
   const getUsuarioNombre = (usuarioId) => {
+    if (!usuarioId) return "Sin asignar"
     const usuario = usuarios.find((u) => u._id === usuarioId)
     return usuario ? usuario.nombre : "Sin asignar"
   }
@@ -562,14 +743,25 @@ const BacklogPage = () => {
                   Proyecto: <span className="font-medium">{proyecto.nombre}</span>
                 </p>
               )}
+              <div className="text-sm text-gray-500 mt-1">
+                Épicas: {epicas.length} | Historias: {historias.length} | Tareas: {tareas.length}
+              </div>
             </div>
-            <button
-              onClick={handleCreateEpica}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nueva Épica
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={recargarBacklog}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                🔄 Recargar
+              </button>
+              <button
+                onClick={handleCreateEpica}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nueva Épica
+              </button>
+            </div>
           </div>
         </header>
 
@@ -625,6 +817,9 @@ const BacklogPage = () => {
                             className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(epica.estado)}`}
                           >
                             {epica.estado}
+                          </span>
+                          <span className="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded-full">
+                            {getHistoriasByEpica(epica._id).length} historias
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -701,6 +896,9 @@ const BacklogPage = () => {
                                       >
                                         {historia.estado}
                                       </span>
+                                      <span className="ml-2 px-2 py-0.5 text-xs bg-gray-200 text-gray-700 rounded-full">
+                                        {getTareasByHistoria(historia._id).length} tareas
+                                      </span>
                                     </div>
                                     <div className="flex items-center space-x-1">
                                       <button
@@ -740,15 +938,21 @@ const BacklogPage = () => {
                                     <div className="mt-2 ml-6">
                                       {(historia.comoUsuario || historia.quiero || historia.para) && (
                                         <div className="bg-white p-3 rounded-md mb-3 text-sm text-gray-700">
-                                          <p>
-                                            <strong>Como</strong> {historia.comoUsuario}
-                                          </p>
-                                          <p>
-                                            <strong>Quiero</strong> {historia.quiero}
-                                          </p>
-                                          <p>
-                                            <strong>Para</strong> {historia.para}
-                                          </p>
+                                          {historia.comoUsuario && (
+                                            <p>
+                                              <strong>Como</strong> {historia.comoUsuario}
+                                            </p>
+                                          )}
+                                          {historia.quiero && (
+                                            <p>
+                                              <strong>Quiero</strong> {historia.quiero}
+                                            </p>
+                                          )}
+                                          {historia.para && (
+                                            <p>
+                                              <strong>Para</strong> {historia.para}
+                                            </p>
+                                          )}
                                         </div>
                                       )}
 
@@ -813,11 +1017,9 @@ const BacklogPage = () => {
                                               )}
 
                                               <div className="mt-2 flex flex-wrap items-center text-xs text-gray-500 gap-2">
-                                                {tarea.asignado && (
-                                                  <span className="inline-flex items-center">
-                                                    Asignado: {getUsuarioNombre(tarea.asignado)}
-                                                  </span>
-                                                )}
+                                                <span className="inline-flex items-center">
+                                                  Asignado: {getUsuarioNombre(tarea.asignado)}
+                                                </span>
 
                                                 {tarea.fechaLimite && (
                                                   <span className="inline-flex items-center">
@@ -858,7 +1060,6 @@ const BacklogPage = () => {
           )}
         </main>
 
-        <Footer />
       </div>
 
       {/* Modal para crear/editar épica */}
@@ -1075,7 +1276,10 @@ const BacklogPage = () => {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setShowHistoriaForm(false)}
+                  onClick={() => {
+                    setShowHistoriaForm(false)
+                    setSelectedEpicaId(null)
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancelar
@@ -1095,7 +1299,7 @@ const BacklogPage = () => {
       {/* Modal para crear/editar tarea */}
       {showTareaForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4">{currentTarea ? "Editar Tarea" : "Nueva Tarea"}</h2>
 
             <form onSubmit={handleTareaSubmit}>
@@ -1185,7 +1389,7 @@ const BacklogPage = () => {
                     Asignado a
                   </label>
                   {loadingUsuarios ? (
-                    <div className="flex items-center space-x-2 text-sm text-secondary-500">
+                    <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-indigo-600 rounded-full"></div>
                       <span>Cargando usuarios...</span>
                     </div>
@@ -1280,7 +1484,10 @@ const BacklogPage = () => {
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setShowTareaForm(false)}
+                  onClick={() => {
+                    setShowTareaForm(false)
+                    setSelectedHistoriaId(null)
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   Cancelar

@@ -180,3 +180,35 @@ export const actualizarUsuario = async (req, res) => {
     })
   }
 }
+
+// @desc    Obtener todos los usuarios
+// @route   GET /api/usuarios
+// @access  Private
+export const getUsuarios = async (req, res) => {
+  try {
+    console.log("=== GET USUARIOS ===")
+    console.log("Usuario autenticado:", req.usuario?.id)
+
+    const usuarios = await Usuario.find()
+      .select("-contraseña") // Excluir contraseña por seguridad
+      .sort({ createdAt: -1 })
+
+    console.log("Usuarios encontrados en DB:", usuarios.length)
+    if (usuarios.length > 0) {
+      console.log("Primer usuario como ejemplo:", usuarios[0])
+    }
+
+    res.status(200).json({
+      success: true,
+      count: usuarios.length,
+      usuarios,
+    })
+  } catch (error) {
+    console.error("❌ Error al obtener usuarios:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error al obtener usuarios",
+      error: error.message,
+    })
+  }
+}

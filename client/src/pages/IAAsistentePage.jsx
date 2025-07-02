@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import axios from "axios"
+import { Send, Bot, User, Sparkles, RefreshCw, AlertCircle, CheckCircle, MessageSquare, Zap } from "lucide-react"
 import Sidebar from "../components/common/Sidebar"
 import Footer from "../components/common/Footer"
 
@@ -8,14 +10,19 @@ const IAAsistentePage = () => {
   const [mensajes, setMensajes] = useState([])
   const [nuevoMensaje, setNuevoMensaje] = useState("")
   const [cargando, setCargando] = useState(false)
+  const [configuracionIA, setConfiguracionIA] = useState(null)
+  const [error, setError] = useState("")
   const mensajesRef = useRef(null)
 
-  // Mensajes iniciales
+  // Verificar configuración de IA al cargar
   useEffect(() => {
+    verificarConfiguracion()
+    // Mensaje inicial
     setMensajes([
       {
         id: 1,
-        texto: "Hola, soy tu asistente IA. ¿En qué puedo ayudarte hoy?",
+        texto:
+          "¡Hola! Soy tu asistente IA especializado en gestión de proyectos. Puedo ayudarte a analizar el estado de tus proyectos, identificar retrasos, optimizar recursos y mucho más. ¿En qué puedo ayudarte hoy?",
         esIA: true,
         timestamp: new Date(),
       },
@@ -29,10 +36,43 @@ const IAAsistentePage = () => {
     }
   }, [mensajes])
 
-  const handleEnviarMensaje = (e) => {
+  // Verificar configuración de IA
+  const verificarConfiguracion = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.get("http://localhost:5000/api/ia/verificar", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setConfiguracionIA(response.data)
+    } catch (error) {
+      console.error("Error verificando configuración IA:", error)
+      setError("Error en la configuración de IA. Verifica que la API Key esté configurada.")
+    }
+  }
+
+  // Enviar mensaje a la IA
+  const enviarMensajeIA = async (mensaje) => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.post(
+        "http://localhost:5000/api/ia/mensaje",
+        { mensaje },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      return response.data.respuesta
+    } catch (error) {
+      console.error("Error enviando mensaje a IA:", error)
+      throw new Error("Error al procesar el mensaje con IA")
+    }
+  }
+
+  const handleEnviarMensaje = async (e) => {
     e.preventDefault()
 
     if (!nuevoMensaje.trim()) return
+
+    // Limpiar error previo
+    setError("")
 
     // Agregar mensaje del usuario
     const mensajeUsuario = {
@@ -42,56 +82,38 @@ const IAAsistentePage = () => {
       timestamp: new Date(),
     }
 
-    setMensajes([...mensajes, mensajeUsuario])
+    setMensajes((prev) => [...prev, mensajeUsuario])
+    const mensajeActual = nuevoMensaje
     setNuevoMensaje("")
     setCargando(true)
 
-    // Simular respuesta de la IA
-    setTimeout(() => {
-      const respuestas = [
-        "Estoy analizando los datos del proyecto para ofrecerte insights relevantes.",
-        "Basado en el progreso actual, el proyecto parece estar en buen camino para cumplir con la fecha límite.",
-        "He detectado que algunas tareas están retrasadas. ¿Quieres que te ayude a reorganizar las prioridades?",
-        "Según mis cálculos, necesitarás asignar más recursos a la fase de desarrollo para cumplir con el cronograma.",
-        "He revisado el código y encontré algunas oportunidades de optimización que podrían mejorar el rendimiento.",
-        "Basado en proyectos similares, te recomendaría dividir esta tarea en subtareas más pequeñas para un mejor seguimiento.",
-        "¿Necesitas que genere un informe de progreso para la reunión de mañana?",
-        "He notado un patrón en los bugs reportados. Podría estar relacionado con la última actualización de la base de datos.",
-      ]
+    try {
+      // Enviar mensaje a la IA
+      const respuestaIA = await enviarMensajeIA(mensajeActual)
 
-      let respuesta = ""
-
-      // Generar respuesta contextual basada en la pregunta
-      if (nuevoMensaje.toLowerCase().includes("proyecto")) {
-        respuesta =
-          "He analizado el estado actual de tus proyectos. Tienes 3 proyectos activos y 2 completados. El proyecto 'Desarrollo de Aplicación Web' tiene 5 tareas pendientes con alta prioridad."
-      } else if (nuevoMensaje.toLowerCase().includes("tarea") || nuevoMensaje.toLowerCase().includes("tareas")) {
-        respuesta =
-          "Actualmente tienes 12 tareas asignadas: 5 pendientes, 4 en progreso, 2 en revisión y 1 completada. La tarea 'Diseñar interfaz de usuario' tiene la fecha límite más próxima."
-      } else if (nuevoMensaje.toLowerCase().includes("equipo")) {
-        respuesta =
-          "Tu equipo 'Equipo de Desarrollo' tiene 5 miembros y está asignado a 2 proyectos activos. La productividad del equipo ha aumentado un 15% en el último mes."
-      } else if (nuevoMensaje.toLowerCase().includes("reporte") || nuevoMensaje.toLowerCase().includes("informe")) {
-        respuesta =
-          "Puedo generar varios tipos de informes: progreso del proyecto, distribución de tareas, carga de trabajo por miembro del equipo y análisis de rendimiento. ¿Qué tipo de informe necesitas?"
-      } else if (nuevoMensaje.toLowerCase().includes("ayuda") || nuevoMensaje.toLowerCase().includes("help")) {
-        respuesta =
-          "Puedo ayudarte con: gestión de proyectos, asignación de tareas, análisis de datos, generación de informes, recomendaciones de mejora y responder preguntas sobre la plataforma."
-      } else {
-        // Respuesta aleatoria
-        respuesta = respuestas[Math.floor(Math.random() * respuestas.length)]
-      }
-
+      // Agregar respuesta de la IA
       const mensajeIA = {
         id: Date.now() + 1,
-        texto: respuesta,
+        texto: respuestaIA,
         esIA: true,
         timestamp: new Date(),
       }
 
-      setMensajes((prevMensajes) => [...prevMensajes, mensajeIA])
+      setMensajes((prev) => [...prev, mensajeIA])
+    } catch (error) {
+      // Agregar mensaje de error
+      const mensajeError = {
+        id: Date.now() + 1,
+        texto: "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.",
+        esIA: true,
+        timestamp: new Date(),
+        esError: true,
+      }
+      setMensajes((prev) => [...prev, mensajeError])
+      setError(error.message)
+    } finally {
       setCargando(false)
-    }, 1500)
+    }
   }
 
   // Formatear fecha
@@ -101,115 +123,248 @@ const IAAsistentePage = () => {
 
   // Sugerencias rápidas
   const sugerencias = [
-    "¿Cuál es el estado de mis proyectos?",
-    "Muestra mis tareas pendientes",
-    "Analiza el rendimiento de mi equipo",
-    "Genera un informe de progreso",
-    "¿Cómo puedo mejorar la productividad?",
-    "Ayúdame a priorizar mis tareas",
+    {
+      texto: "¿Cuál es el estado de mis proyectos?",
+      icono: <MessageSquare className="w-4 h-4" />,
+      categoria: "Estado",
+    },
+    {
+      texto: "Muestra mis tareas pendientes",
+      icono: <Zap className="w-4 h-4" />,
+      categoria: "Tareas",
+    },
+    {
+      texto: "Analiza el rendimiento de mi equipo",
+      icono: <Sparkles className="w-4 h-4" />,
+      categoria: "Análisis",
+    },
+    {
+      texto: "¿Qué proyectos están próximos a acabar?",
+      icono: <CheckCircle className="w-4 h-4" />,
+      categoria: "Cronograma",
+    },
+    {
+      texto: "¿Cuáles proyectos presentarían retrasos?",
+      icono: <AlertCircle className="w-4 h-4" />,
+      categoria: "Riesgos",
+    },
+    {
+      texto: "Ayúdame a priorizar mis tareas",
+      icono: <Sparkles className="w-4 h-4" />,
+      categoria: "Optimización",
+    },
   ]
 
   const usarSugerencia = (sugerencia) => {
-    setNuevoMensaje(sugerencia)
+    setNuevoMensaje(sugerencia.texto)
+  }
+
+  const limpiarChat = () => {
+    setMensajes([
+      {
+        id: 1,
+        texto:
+          "¡Hola! Soy tu asistente IA especializado en gestión de proyectos. Puedo ayudarte a analizar el estado de tus proyectos, identificar retrasos, optimizar recursos y mucho más. ¿En qué puedo ayudarte hoy?",
+        esIA: true,
+        timestamp: new Date(),
+      },
+    ])
+    setError("")
   }
 
   return (
-    <div className="dashboard-container">
+    <div className=" ">
       <Sidebar />
       <div className="main-content">
+        {/* Header */}
         <header className="dashboard-header">
-          <h1>Asistente IA</h1>
-          <div className="ia-actions">
-            <button className="btn-secondary">Configurar IA</button>
-            <button className="btn-primary">Nueva Conversación</button>
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+              <Bot className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Asistente IA</h1>
+              <p className="text-sm text-gray-500">Especializado en gestión de proyectos</p>
+            </div>
           </div>
-        </header>
 
-        <div className="ia-container">
-          <div className="ia-sidebar">
-            <div className="ia-sidebar-header">
-              <h2>Conversaciones</h2>
-              <button className="btn-icon">+</button>
-            </div>
-            <div className="ia-conversaciones">
-              <div className="ia-conversacion active">
-                <h3>Conversación actual</h3>
-                <span className="ia-conversacion-fecha">Hoy</span>
-              </div>
-              <div className="ia-conversacion">
-                <h3>Análisis de proyecto DAW</h3>
-                <span className="ia-conversacion-fecha">Ayer</span>
-              </div>
-              <div className="ia-conversacion">
-                <h3>Planificación sprint</h3>
-                <span className="ia-conversacion-fecha">12/05/2023</span>
-              </div>
-            </div>
-            <div className="ia-sidebar-footer">
-              <h3>Modelos IA</h3>
-              <select>
-                <option>Asistente General</option>
-                <option>Análisis de Proyectos</option>
-                <option>Planificación de Tareas</option>
-              </select>
-            </div>
-          </div>
-          <div className="ia-chat">
-            <div className="ia-mensajes" ref={mensajesRef}>
-              {mensajes.map((mensaje) => (
-                <div key={mensaje.id} className={`ia-mensaje ${mensaje.esIA ? "ia-mensaje-ia" : "ia-mensaje-usuario"}`}>
-                  <div className="ia-mensaje-avatar">{mensaje.esIA ? "🤖" : "👤"}</div>
-                  <div className="ia-mensaje-contenido">
-                    <div className="ia-mensaje-header">
-                      <span className="ia-mensaje-autor">{mensaje.esIA ? "Asistente IA" : "Tú"}</span>
-                      <span className="ia-mensaje-hora">{formatearHora(mensaje.timestamp)}</span>
-                    </div>
-                    <div className="ia-mensaje-texto">{mensaje.texto}</div>
-                  </div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              {configuracionIA ? (
+                <div className="flex items-center space-x-2 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">IA Conectada</span>
                 </div>
-              ))}
-              {cargando && (
-                <div className="ia-mensaje ia-mensaje-ia">
-                  <div className="ia-mensaje-avatar">🤖</div>
-                  <div className="ia-mensaje-contenido">
-                    <div className="ia-mensaje-header">
-                      <span className="ia-mensaje-autor">Asistente IA</span>
-                      <span className="ia-mensaje-hora">{formatearHora(new Date())}</span>
-                    </div>
-                    <div className="ia-mensaje-texto">
-                      <div className="ia-typing">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                    </div>
-                  </div>
+              ) : (
+                <div className="flex items-center space-x-2 text-red-600">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm font-medium">IA Desconectada</span>
                 </div>
               )}
             </div>
-            <div className="ia-sugerencias">
-              {sugerencias.map((sugerencia, index) => (
-                <button key={index} className="ia-sugerencia" onClick={() => usarSugerencia(sugerencia)}>
-                  {sugerencia}
-                </button>
-              ))}
+
+            <button
+              onClick={verificarConfiguracion}
+              className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Verificar</span>
+            </button>
+
+            <button
+              onClick={limpiarChat}
+              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Nueva Conversación</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-red-700">
+              <AlertCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">{error}</span>
             </div>
-            <form className="ia-input" onSubmit={handleEnviarMensaje}>
-              <input
-                type="text"
-                placeholder="Escribe un mensaje..."
-                value={nuevoMensaje}
-                onChange={(e) => setNuevoMensaje(e.target.value)}
-                disabled={cargando}
-              />
-              <button type="submit" className="btn-primary" disabled={cargando || !nuevoMensaje.trim()}>
-                Enviar
+            <button onClick={() => setError("")} className="text-red-500 hover:text-red-700 transition-colors">
+              <span className="text-xl">&times;</span>
+            </button>
+          </div>
+        )}
+
+        {/* Chat Container */}
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-gray-50">
+          {/* Messages */}
+          <div ref={mensajesRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+            {mensajes.map((mensaje) => (
+              <div
+                key={mensaje.id}
+                className={`flex items-start space-x-3 ${mensaje.esIA ? "" : "flex-row-reverse space-x-reverse"}`}
+              >
+                {/* Avatar */}
+                <div
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                    mensaje.esIA ? "bg-gradient-to-r from-blue-500 to-purple-600" : "bg-gray-600"
+                  }`}
+                >
+                  {mensaje.esIA ? <Bot className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
+                </div>
+
+                {/* Message Content */}
+                <div className={`flex-1 max-w-3xl ${mensaje.esIA ? "" : "flex flex-col items-end"}`}>
+                  <div
+                    className={`rounded-2xl px-4 py-3 ${
+                      mensaje.esIA
+                        ? mensaje.esError
+                          ? "bg-red-50 border border-red-200 text-red-800"
+                          : "bg-white border border-gray-200 shadow-sm"
+                        : "bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{mensaje.texto}</p>
+                  </div>
+                  <div className={`mt-1 text-xs text-gray-500 ${mensaje.esIA ? "" : "text-right"}`}>
+                    {formatearHora(mensaje.timestamp)}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Loading Message */}
+            {cargando && (
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 max-w-3xl">
+                  <div className="bg-white border border-gray-200 shadow-sm rounded-2xl px-4 py-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-500">Analizando datos del proyecto...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Suggestions */}
+          {mensajes.length <= 1 && !cargando && (
+            <div className="px-6 pb-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Sugerencias para empezar
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {sugerencias.map((sugerencia, index) => (
+                    <button
+                      key={index}
+                      onClick={() => usarSugerencia(sugerencia)}
+                      disabled={cargando || !configuracionIA}
+                      className="flex items-center space-x-2 p-3 text-left text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="text-blue-500">{sugerencia.icono}</div>
+                      <div className="flex-1">
+                        <div className="font-medium">{sugerencia.texto}</div>
+                        <div className="text-xs text-gray-500">{sugerencia.categoria}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Input Area */}
+          <div className="border-t border-gray-200 bg-white p-6">
+            <form onSubmit={handleEnviarMensaje} className="flex items-end space-x-3">
+              <div className="flex-1">
+                <textarea
+                  value={nuevoMensaje}
+                  onChange={(e) => setNuevoMensaje(e.target.value)}
+                  placeholder="Escribe tu pregunta sobre gestión de proyectos..."
+                  disabled={cargando || !configuracionIA}
+                  rows={1}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleEnviarMensaje(e)
+                    }
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={cargando || !nuevoMensaje.trim() || !configuracionIA}
+                className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {cargando ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </button>
             </form>
+
+            {!configuracionIA && (
+              <div className="mt-3 text-center">
+                <p className="text-sm text-gray-500">
+                  La IA no está disponible. Verifica la configuración de la API Key.
+                </p>
+              </div>
+            )}
           </div>
         </div>
-
-        <Footer />
       </div>
     </div>
   )

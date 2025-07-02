@@ -6,21 +6,24 @@ import {
   actualizarProyecto,
   eliminarProyecto,
   getEquipos,
+  dataProyectos
 } from "../controllers/proyectosController.js"
-import { authMiddleware } from "../middleware/auth.js"
 
 const router = express.Router()
 
+router.get("/dataProyectos/",dataProyectos)
+
 // Rutas para proyectos
-router.route("/").get(authMiddleware, getProyectos).post(authMiddleware, crearProyecto)
+router.route("/").get(getProyectos).post(crearProyecto)
 
 router
   .route("/:id")
-  .get(authMiddleware, getProyectoById)
-  .put(authMiddleware, actualizarProyecto)
-  .delete(authMiddleware, eliminarProyecto)
+  .get(getProyectoById)
+  .put(actualizarProyecto)
+  .delete(eliminarProyecto)
 
 // Ruta para obtener equipos
-router.get("/equipos/lista", authMiddleware, getEquipos)
+router.get("/equipos/lista", getEquipos)
+
 
 export default router

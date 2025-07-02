@@ -7,6 +7,7 @@ import {
   crearHistoria,
   actualizarHistoria,
   eliminarHistoria,
+  getHistoriasSinSprint,
 } from "../controllers/historiasController.js"
 import { authMiddleware } from "../middleware/auth.js"
 
@@ -17,6 +18,7 @@ router.use(authMiddleware)
 
 router.route("/").get(getHistorias).post(crearHistoria)
 router.route("/proyecto/:proyectoId").get(getHistoriasByProyecto)
+router.route("/proyecto/:proyectoId/sin-sprint").get(getHistoriasSinSprint)
 router.route("/epica/:epicaId").get(getHistoriasByEpica)
 router.route("/:id").get(getHistoriaById).put(actualizarHistoria).delete(eliminarHistoria)
 

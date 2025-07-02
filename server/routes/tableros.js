@@ -6,6 +6,7 @@ import {
   actualizarTablero,
   eliminarTablero,
   moverTarea,
+  moverHistoria,
 } from "../controllers/tablerosController.js"
 import { authMiddleware } from "../middleware/auth.js"
 
@@ -23,5 +24,6 @@ router
 // Rutas específicas
 router.get("/proyecto/:proyectoId", authMiddleware, getTablerosByProyecto)
 router.put("/mover-tarea/:tareaId", authMiddleware, moverTarea)
+router.put("/mover-historia/:historiaId", authMiddleware, moverHistoria)
 
 export default router

@@ -14,7 +14,7 @@ dotenv.config()
 
 // Conectar a MongoDB
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/projectManagement")
+  .connect(process.env.MONGO_URI )
   .then(() => console.log("MongoDB conectado para seeders"))
   .catch((err) => console.error("Error al conectar MongoDB:", err))
 
@@ -365,7 +365,7 @@ const ejecutarSeeders = async () => {
     const { columnas } = await crearTablerosYColumnas(proyectos)
     await crearTareas(proyectos, usuarios, columnas)
     const epicas = await crearEpicas(proyectos, usuarios)
-    const historias = await crearHistorias(epicas, proyectos, usuarios)
+    await crearHistorias(epicas, proyectos, usuarios)
 
     console.log("Datos de prueba creados exitosamente")
     process.exit(0)

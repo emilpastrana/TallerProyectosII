@@ -42,7 +42,35 @@ const proyectoSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+},
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  }
+)
+
+
+// Epicas relacionadas a este proyecto
+proyectoSchema.virtual('epicas', {
+  ref: 'Epica',
+  localField: '_id',
+  foreignField: 'proyecto',
 })
+
+// Historias relacionadas a este proyecto
+proyectoSchema.virtual('historias', {
+  ref: 'Historia',
+  localField: '_id',
+  foreignField: 'proyecto',
+})
+
+// Tareas relacionadas a este proyecto
+proyectoSchema.virtual('tareas', {
+  ref: 'Tarea',
+  localField: '_id',
+  foreignField: 'proyecto',
+})
+
 
 const Proyecto = mongoose.model("Proyecto", proyectoSchema)
 

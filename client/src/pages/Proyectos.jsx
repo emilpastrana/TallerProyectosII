@@ -265,7 +265,7 @@ const Proyectos = () => {
           </div>
         )}
 
-        <Footer />
+
       </div>
     </div>
   )
