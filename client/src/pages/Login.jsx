@@ -81,6 +81,27 @@ const Login = () => {
           </div>
           <h1 className="text-3xl font-bold text-secondary-900">Iniciar Sesión</h1>
           <p className="mt-2 text-sm text-secondary-600">Ingresa tus credenciales para acceder a tu cuenta</p>
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-center mb-3">
+              <svg className="animate-bounce w-6 h-6 text-blue-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+            </div>
+            <p className="text-sm text-blue-700 text-center">El servidor backend puede estar en reposo.
+El inicio de sesión podría fallar temporalmente, pero estará disponible en menos de un minuto</p>
+          </div>
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <p className="text-sm text-gray-600 text-center">
+              Para acceder como administrador prueba con: <br />
+              <span className="font-mono">admin@example.com</span> <br />
+              <span className="font-mono">password123</span>
+            </p>
+          </div>
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-700 text-center">
+              El chat con IA está temporalmente desactivado por costos de API.
+            </p>
+          </div>
         </div>
 
         {serverError && (
@@ -108,9 +129,8 @@ const Login = () => {
                 autoComplete="email"
                 value={formData.correo}
                 onChange={handleChange}
-                className={`block w-full pl-10 pr-3 py-2 border ${
-                  errors.correo ? "border-red-300" : "border-secondary-300"
-                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                className={`block w-full pl-10 pr-3 py-2 border ${errors.correo ? "border-red-300" : "border-secondary-300"
+                  } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
                 placeholder="nombre@ejemplo.com"
               />
             </div>
@@ -132,9 +152,8 @@ const Login = () => {
                 autoComplete="current-password"
                 value={formData.contraseña}
                 onChange={handleChange}
-                className={`block w-full pl-10 pr-3 py-2 border ${
-                  errors.contraseña ? "border-red-300" : "border-secondary-300"
-                } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
+                className={`block w-full pl-10 pr-3 py-2 border ${errors.contraseña ? "border-red-300" : "border-secondary-300"
+                  } rounded-md shadow-sm placeholder-secondary-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm`}
                 placeholder="••••••••"
               />
             </div>
