@@ -40,7 +40,7 @@ const IAAsistentePage = () => {
   const verificarConfiguracion = async () => {
     try {
       const token = localStorage.getItem("token")
-      const response = await axios.get("http://localhost:5000/api/ia/verificar", {
+      const response = await axios.get("/api/ia/verificar", {
         headers: { Authorization: `Bearer ${token}` },
       })
       setConfiguracionIA(response.data)
@@ -55,7 +55,7 @@ const IAAsistentePage = () => {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.post(
-        "http://localhost:5000/api/ia/mensaje",
+        "/api/ia/mensaje",
         { mensaje },
         { headers: { Authorization: `Bearer ${token}` } },
       )

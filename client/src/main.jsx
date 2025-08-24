@@ -7,8 +7,8 @@ import "./index.css"
 // Configurar axios para peticiones al backend
 import axios from "axios"
 
-// Configurar la URL base
-axios.defaults.baseURL = "http://localhost:5000"
+// Configurar la URL base para el servidor desplegado en Render
+axios.defaults.baseURL = "https://gestor-de-proyectos-p8rm.onrender.com"
 
 // Configurar interceptor para añadir el token a cada petición
 axios.interceptors.request.use(

@@ -10,7 +10,7 @@ const useSocket = () => {
     const token = localStorage.getItem("token")
 
     if (token && !socketRef.current) {
-      socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:5000", {
+      socketRef.current = io("https://gestor-de-proyectos-p8rm.onrender.com", {
         auth: {
           token: token,
         },
